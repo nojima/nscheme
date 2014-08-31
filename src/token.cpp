@@ -2,12 +2,12 @@
 
 namespace nscheme {
 
-std::string Token::toString() const {
+std::string Token::ToString() const {
     switch (type_) {
     case TokenType::kEof:
         return "EOF";
     case TokenType::kIdentifier:
-        return "[Identifier " + identifier_.toString() + "]";
+        return "[Identifier " + identifier_.ToString() + "]";
     case TokenType::kTrue:
         return "[Boolean true]";
     case TokenType::kFalse:

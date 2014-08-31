@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <string>
 #include <unordered_set>
 
@@ -7,6 +8,8 @@ namespace nscheme {
 
 class Symbol {
 public:
+    explicit Symbol(const std::string* p): p_(p) {}
+
     bool operator==(const Symbol& rhs) const noexcept {
         return p_ == rhs.p_;
     }
@@ -15,14 +18,11 @@ public:
         return p_ != rhs.p_;
     }
 
-    const std::string& toString() const {
+    const std::string& ToString() const {
         return *p_;
     }
 
 private:
-    explicit Symbol(const std::string* p):
-        p_(p) {}
-
     const std::string* p_;
 
     friend class SymbolTable;
@@ -30,7 +30,7 @@ private:
 
 class SymbolTable {
 public:
-    Symbol get(const std::string& name) {
+    Symbol Get(const std::string& name) {
         auto pair = table_.insert(name);
         return Symbol(&*pair.first);
     }

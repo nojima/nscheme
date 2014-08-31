@@ -2,6 +2,36 @@
 
 #include <cctype>
 
+namespace {
+
+inline bool IsSpecialInitial(int ch) {
+    switch (ch) {
+    case '!': case '$': case '%': case '&': case '*': case '/': case ':':
+    case '<': case '=': case '>': case '?': case '^': case '_': case '~':
+        return true;
+    default:
+        return false;
+    }
+}
+
+inline bool IsInitial(int ch) {
+    return isalpha(ch) || IsSpecialInitial(ch);
+}
+
+inline bool IsExplicitSign(int ch) {
+    return ch == '+' || ch == '-';
+}
+
+inline bool IsSpecialSubsequent(int ch) {
+    return ch == '.' || ch == '@' || IsExplicitSign(ch);
+}
+
+inline bool IsSubsequent(int ch) {
+    return IsInitial(ch) || isdigit(ch) || IsSpecialSubsequent(ch);
+}
+
+}   // namespace
+
 namespace nscheme {
 
 void Scanner::Next() {
@@ -10,6 +40,10 @@ retry:
     while (std::isspace(ch))
         ch = NextChar();
 
+    if (ch == -1) {
+        token_ = Token::CreateEof();
+        return;
+    }
     if (isdigit(ch)) {
         std::string buffer;
         while (isdigit(ch)) {
@@ -17,6 +51,29 @@ retry:
             ch = NextChar();
         }
         token_ = Token::CreateInteger(std::stoll(buffer));
+        return;
+    }
+    if (IsInitial(ch)) {
+        std::string buffer(1, ch);
+        ch = NextChar();
+        while (IsSubsequent(ch)) {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+        token_ = Token::CreateIdentifier(buffer, table_);
+        return;
+    }
+    if (ch == '|') {
+        std::string buffer;
+        ch = NextChar();
+        while (ch != -1 && ch != '|') {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+        if (ch != '|')
+            throw ScanError(CurrPos(), "expected '|'");
+        NextChar();
+        token_ = Token::CreateIdentifier(buffer, table_);
         return;
     }
     if (ch == '(') {
@@ -59,6 +116,11 @@ retry:
         if (comment)
             goto retry;
         return;
+    }
+    if (ch == ';') {
+        while (ch != -1 && ch != '\n')
+            ch = NextChar();
+        goto retry;
     }
 }
 

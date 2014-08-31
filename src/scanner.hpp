@@ -13,8 +13,9 @@ class Scanner {
 public:
     Scanner(const std::istreambuf_iterator<char>& first,
             const std::istreambuf_iterator<char>& last,
-            const std::string& filename):
-        it_(first), last_(last), filename_(filename) {}
+            const std::string& filename,
+            SymbolTable* table):
+        it_(first), last_(last), filename_(filename), table_(table) {}
 
     const Token& Get() const noexcept {
         return token_;
@@ -54,6 +55,7 @@ private:
     size_t line_ = 1;
     size_t column_ = 1;
     Token token_ = Token::CreateEof();
+    SymbolTable* table_;
 };
 
 class ScanError: public BasicError {

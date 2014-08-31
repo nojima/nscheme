@@ -36,8 +36,8 @@ TEST(Scanner, Identifier1) {
 }
 
 TEST(Scanner, Identifier2) {
-    PREPARE_SCANNER("|hello world|")
-    EXPECT_EQ(Token::CreateIdentifier("hello world", &table), scanner.Get());
+    PREPARE_SCANNER("|hello world\t\\|foo\x40hoge.com\n|")
+    EXPECT_EQ(Token::CreateIdentifier("hello world\t|foo@hoge.com\n", &table), scanner.Get());
     scanner.Next();
     EXPECT_EQ(Token::CreateEof(), scanner.Get());
 }

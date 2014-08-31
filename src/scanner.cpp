@@ -67,8 +67,26 @@ retry:
         std::string buffer;
         ch = NextChar();
         while (ch != -1 && ch != '|') {
-            buffer.push_back(ch);
-            ch = NextChar();
+            if (ch == '\\') {
+                ch = NextChar();
+                if (isdigit(ch)) {
+                    buffer.push_back(DecodeHex());
+                    if (ch != ';')
+                        throw ScanError(CurrPos(), "expected ';'");
+                    ch = NextChar();
+                } else if (ch == '|') {
+                    buffer.push_back('|');
+                    ch = NextChar();
+                } else if (isalpha(ch)) {
+                    buffer.push_back(DecodeMnemoicEscape());
+                    ch = NextChar();
+                } else {
+                    throw ScanError(CurrPos(), "unknown escape");
+                }
+            } else {
+                buffer.push_back(ch);
+                ch = NextChar();
+            }
         }
         if (ch != '|')
             throw ScanError(CurrPos(), "expected '|'");
@@ -175,12 +193,7 @@ void Scanner::TokenizeCharacter() {
         ch = NextChar();
         if (isalnum(ch)) {
             // #\x <hex scalar value>
-            std::string buffer;
-            while (isalnum(ch)) {
-                buffer.push_back(ch);
-                ch = NextChar();
-            }
-            token_ = Token::CreateCharacter(std::stoi(buffer, 0, 16));
+            token_ = Token::CreateCharacter(DecodeHex());
             return;
         }
         // character 'x'
@@ -225,6 +238,29 @@ Token Scanner::CharacterNameToToken(const std::string& name) {
     if (name == "tab")
         return Token::CreateCharacter(0x09);
     throw ScanError(CurrPos(), "unknown character name: " + name);
+}
+
+char Scanner::DecodeMnemoicEscape() {
+    switch (CurrChar()) {
+    case 'a': return '\a';
+    case 'b': return '\b';
+    case 't': return '\t';
+    case 'n': return '\n';
+    case 'r': return '\r';
+    default:
+        throw ScanError(CurrPos(), "unknown mnemoic escape");
+    }
+}
+
+char Scanner::DecodeHex() {
+    std::string buffer;
+    int ch = CurrChar();
+    while (isalnum(ch)) {
+        buffer.push_back(ch);
+        ch = NextChar();
+    }
+    return std::stoi(buffer, 0, 16);
+
 }
 
 }   // namespace nscheme

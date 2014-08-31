@@ -48,6 +48,8 @@ private:
 
     bool TokenizeAfterSharp();
     void TokenizeCharacter();
+    char DecodeMnemoicEscape();
+    char DecodeHex();
 
     std::istreambuf_iterator<char> it_;
     std::istreambuf_iterator<char> last_;

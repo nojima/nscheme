@@ -38,6 +38,12 @@ std::string Token::ToString() const {
         return ",@";
     case TokenType::kPeriod:
         return ".";
+    case TokenType::kSharp:
+        return "#";
+    case TokenType::kEqual:
+        return "=";
+    case TokenType::kLabel:
+        return "[Label " + std::to_string(integer_) + "]";
     default:
         return "UnknownToken";
     }
@@ -57,9 +63,11 @@ bool Token::operator==(const Token& rhs) const noexcept {
         return character_ == rhs.character_;
     case TokenType::kString:
         return string_ == rhs.string_;
+    case TokenType::kLabel:
+        return integer_ == rhs.integer_;
     default:
         return true;
     }
 }
 
-}   // namespace nscheme
+}  // namespace nscheme

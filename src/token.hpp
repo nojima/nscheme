@@ -25,6 +25,9 @@ enum class TokenType {
     kComma,
     kCommaAt,
     kPeriod,
+    kSharp,
+    kEqual,
+    kLabel,
 };
 
 class Token {
@@ -71,6 +74,12 @@ public:
         return string_;
     }
 
+    std::int64_t Label() const {
+        if (type_ != TokenType::kLabel)
+            throw std::runtime_error("invalid token type: expected Label, actually " + ToString());
+        return integer_;
+    }
+
     bool operator==(const Token& rhs) const noexcept;
 
     bool operator!=(const Token& rhs) const noexcept {
@@ -105,6 +114,12 @@ public:
     static Token CreateFloat(double x) {
         Token t(TokenType::kFloat);
         t.float_ = x;
+        return t;
+    }
+
+    static Token CreateCharacter(char ch) {
+        Token t(TokenType::kCharacter);
+        t.character_ = ch;
         return t;
     }
 
@@ -148,6 +163,20 @@ public:
 
     static Token CreatePeriod() {
         return Token(TokenType::kPeriod);
+    }
+
+    static Token CreateSharp() {
+        return Token(TokenType::kSharp);
+    }
+
+    static Token CreateEqual() {
+        return Token(TokenType::kEqual);
+    }
+
+    static Token CreateLabel(std::int64_t no) {
+        Token t(TokenType::kLabel);
+        t.integer_ = no;
+        return t;
     }
 
 private:

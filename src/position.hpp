@@ -21,6 +21,10 @@ public:
         return column_;
     }
 
+    std::string ToString() const {
+        return filename_ + ":" + std::to_string(line_) + ":" + std::to_string(column_);
+    }
+
 private:
     const std::string& filename_;
     size_t line_;

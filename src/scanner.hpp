@@ -46,6 +46,7 @@ private:
 
     Token CharacterNameToToken(const std::string& name);
 
+    void TokenizeEnclosedIdentifier();
     bool TokenizeAfterSharp();
     void TokenizeCharacter();
     char DecodeMnemoicEscape();

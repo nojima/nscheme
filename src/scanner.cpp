@@ -64,37 +64,7 @@ retry:
         return;
     }
     if (ch == '|') {
-        std::string buffer;
-        ch = NextChar();
-        while (ch != -1 && ch != '|') {
-            if (ch == '\\') {
-                ch = NextChar();
-                if (ch == 'x') {
-                    ch = NextChar();
-                    if (!isalnum(ch))
-                        throw ScanError(CurrPos(), "expected hex");
-                    buffer.push_back(DecodeHex());
-                    if (CurrChar() != ';')
-                        throw ScanError(CurrPos(), "expected ';'");
-                    ch = NextChar();
-                } else if (ch == '|') {
-                    buffer.push_back('|');
-                    ch = NextChar();
-                } else if (isalpha(ch)) {
-                    buffer.push_back(DecodeMnemoicEscape());
-                    ch = NextChar();
-                } else {
-                    throw ScanError(CurrPos(), "unknown escape");
-                }
-            } else {
-                buffer.push_back(ch);
-                ch = NextChar();
-            }
-        }
-        if (ch != '|')
-            throw ScanError(CurrPos(), "expected '|'");
-        NextChar();
-        token_ = Token::CreateIdentifier(buffer, table_);
+        TokenizeEnclosedIdentifier();
         return;
     }
     if (ch == '(') {
@@ -143,6 +113,40 @@ retry:
             ch = NextChar();
         goto retry;
     }
+}
+
+void Scanner::TokenizeEnclosedIdentifier() {
+    std::string buffer;
+    int ch = NextChar();
+    while (ch != -1 && ch != '|') {
+        if (ch == '\\') {
+            ch = NextChar();
+            if (ch == 'x') {
+                ch = NextChar();
+                if (!isalnum(ch))
+                    throw ScanError(CurrPos(), "expected hex");
+                buffer.push_back(DecodeHex());
+                if (CurrChar() != ';')
+                    throw ScanError(CurrPos(), "expected ';'");
+                ch = NextChar();
+            } else if (ch == '|') {
+                buffer.push_back('|');
+                ch = NextChar();
+            } else if (isalpha(ch)) {
+                buffer.push_back(DecodeMnemoicEscape());
+                ch = NextChar();
+            } else {
+                throw ScanError(CurrPos(), "unknown escape");
+            }
+        } else {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+    }
+    if (ch != '|')
+        throw ScanError(CurrPos(), "expected '|'");
+    NextChar();
+    token_ = Token::CreateIdentifier(buffer, table_);
 }
 
 bool Scanner::TokenizeAfterSharp() {

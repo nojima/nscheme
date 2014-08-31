@@ -1,14 +1,16 @@
 #pragma once
 
 #include <string>
+#include <stdexcept>
 
 #include "position.hpp"
 
 namespace nscheme {
 
-class BasicError {
+class BasicError: public std::runtime_error {
 public:
     BasicError(const Position& position, const std::string& message):
+        std::runtime_error(position.ToString() + ": " + message),
         position_(position), message_(message) {}
 
     virtual ~BasicError() {}
@@ -19,10 +21,6 @@ public:
 
     const std::string& Message() const noexcept {
         return message_;
-    }
-
-    std::string ToString() const {
-        return position_.ToString() + ": " + message_;
     }
 
 private:

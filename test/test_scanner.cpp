@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include <gtest/gtest.h>
 
@@ -36,7 +37,7 @@ TEST(Scanner, Identifier1) {
 }
 
 TEST(Scanner, Identifier2) {
-    PREPARE_SCANNER("|hello world\t\\|foo\x40hoge.com\n|")
+    PREPARE_SCANNER("|hello world\\t\\|foo\\x40;hoge.com\\n|")
     EXPECT_EQ(Token::CreateIdentifier("hello world\t|foo@hoge.com\n", &table), scanner.Get());
     scanner.Next();
     EXPECT_EQ(Token::CreateEof(), scanner.Get());

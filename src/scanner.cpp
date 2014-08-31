@@ -69,9 +69,12 @@ retry:
         while (ch != -1 && ch != '|') {
             if (ch == '\\') {
                 ch = NextChar();
-                if (isdigit(ch)) {
+                if (ch == 'x') {
+                    ch = NextChar();
+                    if (!isalnum(ch))
+                        throw ScanError(CurrPos(), "expected hex");
                     buffer.push_back(DecodeHex());
-                    if (ch != ';')
+                    if (CurrChar() != ';')
                         throw ScanError(CurrPos(), "expected ';'");
                     ch = NextChar();
                 } else if (ch == '|') {
@@ -248,7 +251,7 @@ char Scanner::DecodeMnemoicEscape() {
     case 'n': return '\n';
     case 'r': return '\r';
     default:
-        throw ScanError(CurrPos(), "unknown mnemoic escape");
+        throw ScanError(CurrPos(), "unknown mnemoic escape: " + std::string(1, CurrChar()));
     }
 }
 

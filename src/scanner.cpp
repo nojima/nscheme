@@ -191,7 +191,7 @@ void Scanner::TokenizeCharacter() {
     int ch2 = NextChar();
     if (isalpha(ch) && isalpha(ch2)) {
         // #\ <character name>
-        std::string buffer;
+        std::string buffer(1, ch);
         while (isalpha(ch2)) {
             buffer.push_back(ch2);
             ch2 = NextChar();

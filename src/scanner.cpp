@@ -5,98 +5,142 @@
 namespace nscheme {
 
 void Scanner::Next() {
+retry:
     int ch = CurrChar();
-    for (;;) {
-        while (std::isspace(ch))
+    while (std::isspace(ch))
+        ch = NextChar();
+
+    if (isdigit(ch)) {
+        std::string buffer;
+        while (isdigit(ch)) {
+            buffer.push_back(ch);
             ch = NextChar();
-
-        if (ch == '(') {
-            token_ = Token::CreateOpenParen();
-            NextChar();
-            return;
         }
-        if (ch == ')') {
-            token_ = Token::CreateCloseParen();
-            NextChar();
-            return;
-        }
-        if (ch == '#') {
-            ch = NextChar();
-            if (ch == '(') {
-                token_ = Token::CreateOpenVector();
-                NextChar();
-                return;
-            }
-            if (ch == '\\') {
-                // character literal
-                ch = NextChar();
-                if (ch == 'x') {
-                    int ch2 = NextChar();
-                    if (isalnum(ch2)) {
-                        // #\x <hex scalar value>
-                        std::string buffer;
-                        while (isalnum(ch2)) {
-                            buffer.push_back(ch2);
-                            ch2 = NextChar();
-                        }
-                        token_ = Token::CreateCharacter(std::stoi(buffer, 0, 16));
-                        return;
-                    }
-                    // character 'x'
-                    token_ = Token::CreateCharacter('x');
-                    return;
-                }
-
-                int ch2 = NextChar();
-                if (isalpha(ch) && isalpha(ch2)) {
-                    // #\ <character name>
-                    std::string buffer;
-                    while (isalpha(ch2)) {
-                        buffer.push_back(ch2);
-                        ch2 = NextChar();
-                    }
-                    token_ = CharacterNameToToken(buffer);
-                    return;
-                }
-
-                // #\ <character>
-                token_ = Token::CreateCharacter(ch);
-                return;
-            }
-            if (ch == 't') {
-                token_ = Token::CreateBoolean(true);
-                NextChar();
-                return;
-            }
-            if (ch == 'f') {
-                token_ = Token::CreateBoolean(false);
-                NextChar();
-                return;
-            }
-            if (ch == 'u') {
-                const int ch2 = NextChar();
-                if (ch2 != '8')
-                    throw ScanError(CurrPos(), "expected '8'");
-                const int ch3 = NextChar();
-                if (ch3 != '(')
-                    throw ScanError(CurrPos(), "expected '('");
-                token_ = Token::CreateOpenByteVector();
-                NextChar();
-                return;
-            }
-            if (isdigit(ch)) {
-                std::string buffer;
-                while (isdigit(ch)) {
-                    buffer.push_back(ch);
-                    ch = NextChar();
-                }
-                token_ = Token::CreateLabel(std::stoi(buffer));
-                return;
-            }
-            token_ = Token::CreateSharp();
-            return;
-        }
+        token_ = Token::CreateInteger(std::stoll(buffer));
+        return;
     }
+    if (ch == '(') {
+        token_ = Token::CreateOpenParen();
+        NextChar();
+        return;
+    }
+    if (ch == ')') {
+        token_ = Token::CreateCloseParen();
+        NextChar();
+        return;
+    }
+    if (ch == '\'') {
+        token_ = Token::CreateQuote();
+        NextChar();
+        return;
+    }
+    if (ch == '`') {
+        token_ = Token::CreateBackQuote();
+        NextChar();
+        return;
+    }
+    if (ch == ',') {
+        const int ch2 = NextChar();
+        if (ch2 == '@') {
+            token_ = Token::CreateCommaAt();
+            NextChar();
+            return;
+        }
+        token_ = Token::CreateComma();
+        return;
+    }
+    if (ch == '.') {
+        token_ = Token::CreatePeriod();
+        NextChar();
+        return;
+    }
+    if (ch == '#') {
+        bool comment = TokenizeAfterSharp();
+        if (comment)
+            goto retry;
+        return;
+    }
+}
+
+bool Scanner::TokenizeAfterSharp() {
+    int ch = NextChar();
+    if (ch == '(') {
+        token_ = Token::CreateOpenVector();
+        NextChar();
+        return false;
+    }
+    if (ch == '\\') {
+        TokenizeCharacter();
+        return false;
+    }
+    if (ch == 't') {
+        token_ = Token::CreateBoolean(true);
+        NextChar();
+        return false;
+    }
+    if (ch == 'f') {
+        token_ = Token::CreateBoolean(false);
+        NextChar();
+        return false;
+    }
+    if (ch == 'u') {
+        ch = NextChar();
+        if (ch != '8')
+            throw ScanError(CurrPos(), "expected '8'");
+        ch = NextChar();
+        if (ch != '(')
+            throw ScanError(CurrPos(), "expected '('");
+        token_ = Token::CreateOpenByteVector();
+        NextChar();
+        return false;
+    }
+    if (isdigit(ch)) {
+        std::string buffer;
+        while (isdigit(ch)) {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+        token_ = Token::CreateLabel(std::stoll(buffer));
+        return false;
+    }
+    token_ = Token::CreateSharp();
+    return false;
+}
+
+void Scanner::TokenizeCharacter() {
+    int ch = NextChar();
+    if (ch == 'x') {
+        ch = NextChar();
+        if (isalnum(ch)) {
+            // #\x <hex scalar value>
+            std::string buffer;
+            while (isalnum(ch)) {
+                buffer.push_back(ch);
+                ch = NextChar();
+            }
+            token_ = Token::CreateCharacter(std::stoi(buffer, 0, 16));
+            return;
+        }
+        // character 'x'
+        token_ = Token::CreateCharacter('x');
+        return;
+    }
+
+    int ch2 = NextChar();
+    if (isalpha(ch) && isalpha(ch2)) {
+        // #\ <character name>
+        std::string buffer;
+        while (isalpha(ch2)) {
+            buffer.push_back(ch2);
+            ch2 = NextChar();
+        }
+        token_ = CharacterNameToToken(buffer);
+        return;
+    }
+
+    // #\ <character>
+    token_ = Token::CreateCharacter(ch);
+    return;
 }
 
 Token Scanner::CharacterNameToToken(const std::string& name) {

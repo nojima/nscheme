@@ -45,6 +45,9 @@ private:
 
     Token CharacterNameToToken(const std::string& name);
 
+    bool TokenizeAfterSharp();
+    void TokenizeCharacter();
+
     std::istreambuf_iterator<char> it_;
     std::istreambuf_iterator<char> last_;
     const std::string& filename_;

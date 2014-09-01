@@ -83,6 +83,31 @@ TEST(Scanner, Identifier6) {
     EXPECT_EQ(Token::CreateEof(), scanner.Get());
 }
 
+TEST(Scanner, Boolean) {
+    PREPARE_SCANNER("#t #f")
+    EXPECT_EQ(Token::CreateBoolean(true), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateBoolean(false), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Vector) {
+    PREPARE_SCANNER("#( #u8(")
+    EXPECT_EQ(Token::CreateOpenVector(), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateOpenByteVector(), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Label) {
+    PREPARE_SCANNER("#10")
+    EXPECT_EQ(Token::CreateLabel(10), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
 TEST(Scanner, Characters) {
     PREPARE_SCANNER("#\\a #\\x #\\space #\\x40 #\\ ")
     std::vector<Token> expected_tokens = {

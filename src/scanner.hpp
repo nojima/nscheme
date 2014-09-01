@@ -15,7 +15,7 @@ public:
             const std::istreambuf_iterator<char>& last,
             const std::string& filename,
             SymbolTable* table):
-        it_(first), last_(last), filename_(filename), table_(table) {}
+        it_(first), last_(last), filename_(filename), table_(table), token_(Token::CreateEof(CurrPos())) {}
 
     const Token& Get() const noexcept {
         return token_;
@@ -61,8 +61,8 @@ private:
     const std::string& filename_;
     size_t line_ = 1;
     size_t column_ = 1;
-    Token token_ = Token::CreateEof();
     SymbolTable* table_;
+    Token token_;
 };
 
 class ScanError: public BasicError {

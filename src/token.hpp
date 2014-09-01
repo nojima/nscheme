@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "position.hpp"
 #include "symbol.hpp"
 
 namespace nscheme {
@@ -34,6 +35,10 @@ class Token {
 public:
     TokenType Type() const noexcept {
         return type_;
+    }
+
+    const Position& Pos() const noexcept {
+        return position_;
     }
 
     Symbol Identifier() const {
@@ -88,101 +93,103 @@ public:
 
     std::string ToString() const;
 
-    static Token CreateEof() {
-        return Token(TokenType::kEof);
+    static Token CreateEof(const Position& pos) {
+        return Token(TokenType::kEof, pos);
     }
 
-    static Token CreateIdentifier(const std::string& name, SymbolTable* table) {
-        Token t(TokenType::kIdentifier);
+    static Token CreateIdentifier(const std::string& name, SymbolTable* table, const Position& pos) {
+        Token t(TokenType::kIdentifier, pos);
         t.identifier_ = table->Get(name);
         return t;
     }
 
-    static Token CreateBoolean(bool b) {
+    static Token CreateBoolean(bool b, const Position& pos) {
         if (b)
-            return Token(TokenType::kTrue);
+            return Token(TokenType::kTrue, pos);
         else
-            return Token(TokenType::kFalse);
+            return Token(TokenType::kFalse, pos);
     }
 
-    static Token CreateInteger(std::int64_t n) {
-        Token t(TokenType::kInteger);
+    static Token CreateInteger(std::int64_t n, const Position& pos) {
+        Token t(TokenType::kInteger, pos);
         t.integer_ = n;
         return t;
     }
 
-    static Token CreateFloat(double x) {
-        Token t(TokenType::kFloat);
+    static Token CreateFloat(double x, const Position& pos) {
+        Token t(TokenType::kFloat, pos);
         t.float_ = x;
         return t;
     }
 
-    static Token CreateCharacter(char ch) {
-        Token t(TokenType::kCharacter);
+    static Token CreateCharacter(char ch, const Position& pos) {
+        Token t(TokenType::kCharacter, pos);
         t.character_ = ch;
         return t;
     }
 
-    static Token CreateString(const std::string& str) {
-        Token t(TokenType::kString);
+    static Token CreateString(const std::string& str, const Position& pos) {
+        Token t(TokenType::kString, pos);
         t.string_ = str;
         return t;
     }
 
-    static Token CreateOpenParen() {
-        return Token(TokenType::kOpenParen);
+    static Token CreateOpenParen(const Position& pos) {
+        return Token(TokenType::kOpenParen, pos);
     }
 
-    static Token CreateCloseParen() {
-        return Token(TokenType::kCloseParen);
+    static Token CreateCloseParen(const Position& pos) {
+        return Token(TokenType::kCloseParen, pos);
     }
 
-    static Token CreateOpenVector() {
-        return Token(TokenType::kOpenVector);
+    static Token CreateOpenVector(const Position& pos) {
+        return Token(TokenType::kOpenVector, pos);
     }
 
-    static Token CreateOpenByteVector() {
-        return Token(TokenType::kOpenByteVector);
+    static Token CreateOpenByteVector(const Position& pos) {
+        return Token(TokenType::kOpenByteVector, pos);
     }
 
-    static Token CreateQuote() {
-        return Token(TokenType::kQuote);
+    static Token CreateQuote(const Position& pos) {
+        return Token(TokenType::kQuote, pos);
     }
 
-    static Token CreateBackQuote() {
-        return Token(TokenType::kBackQuote);
+    static Token CreateBackQuote(const Position& pos) {
+        return Token(TokenType::kBackQuote, pos);
     }
 
-    static Token CreateComma() {
-        return Token(TokenType::kComma);
+    static Token CreateComma(const Position& pos) {
+        return Token(TokenType::kComma, pos);
     }
 
-    static Token CreateCommaAt() {
-        return Token(TokenType::kCommaAt);
+    static Token CreateCommaAt(const Position& pos) {
+        return Token(TokenType::kCommaAt, pos);
     }
 
-    static Token CreatePeriod() {
-        return Token(TokenType::kPeriod);
+    static Token CreatePeriod(const Position& pos) {
+        return Token(TokenType::kPeriod, pos);
     }
 
-    static Token CreateSharp() {
-        return Token(TokenType::kSharp);
+    static Token CreateSharp(const Position& pos) {
+        return Token(TokenType::kSharp, pos);
     }
 
-    static Token CreateEqual() {
-        return Token(TokenType::kEqual);
+    static Token CreateEqual(const Position& pos) {
+        return Token(TokenType::kEqual, pos);
     }
 
-    static Token CreateLabel(std::int64_t no) {
-        Token t(TokenType::kLabel);
+    static Token CreateLabel(std::int64_t no, const Position& pos) {
+        Token t(TokenType::kLabel, pos);
         t.integer_ = no;
         return t;
     }
 
 private:
-    explicit Token(TokenType type): type_(type), identifier_(nullptr) {}
+    explicit Token(TokenType type, Position position):
+        type_(type), position_(position), identifier_(nullptr) {}
 
     TokenType type_ = TokenType::kEof;
+    Position position_;
     Symbol identifier_;
     std::int64_t integer_ = 0;
     double float_ = 0.0;

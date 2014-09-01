@@ -137,6 +137,7 @@ private:
 };
 
 class SymbolObject: public Object {
+public:
     explicit SymbolObject(Symbol symbol): value_(symbol) {}
 
     Symbol Value() const noexcept {
@@ -151,4 +152,4 @@ private:
     Symbol value_;
 };
 
-}   // namespace nscheme
+}

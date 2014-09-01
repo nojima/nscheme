@@ -53,12 +53,12 @@ retry:
         ch = NextChar();
 
     if (ch == -1) {
-        token_ = Token::CreateEof();
+        token_ = Token::CreateEof(CurrPos());
         return;
     }
     if (isdigit(ch)) {
         // TODO: support float
-        token_ = Token::CreateInteger(DecodeDigit());
+        token_ = Token::CreateInteger(DecodeDigit(), CurrPos());
         return;
     }
     if (IsInitial(ch)) {
@@ -68,7 +68,7 @@ retry:
             buffer.push_back(ch);
             ch = NextChar();
         }
-        token_ = Token::CreateIdentifier(buffer, table_);
+        token_ = Token::CreateIdentifier(buffer, table_, CurrPos());
         return;
     }
     if (IsExplicitSign(ch)) {
@@ -84,37 +84,37 @@ retry:
         return;
     }
     if (ch == '(') {
-        token_ = Token::CreateOpenParen();
+        token_ = Token::CreateOpenParen(CurrPos());
         NextChar();
         return;
     }
     if (ch == ')') {
-        token_ = Token::CreateCloseParen();
+        token_ = Token::CreateCloseParen(CurrPos());
         NextChar();
         return;
     }
     if (ch == '\'') {
-        token_ = Token::CreateQuote();
+        token_ = Token::CreateQuote(CurrPos());
         NextChar();
         return;
     }
     if (ch == '`') {
-        token_ = Token::CreateBackQuote();
+        token_ = Token::CreateBackQuote(CurrPos());
         NextChar();
         return;
     }
     if (ch == ',') {
         const int ch2 = NextChar();
         if (ch2 == '@') {
-            token_ = Token::CreateCommaAt();
+            token_ = Token::CreateCommaAt(CurrPos());
             NextChar();
             return;
         }
-        token_ = Token::CreateComma();
+        token_ = Token::CreateComma(CurrPos());
         return;
     }
     if (ch == '.') {
-        token_ = Token::CreatePeriod();
+        token_ = Token::CreatePeriod(CurrPos());
         NextChar();
         return;
     }
@@ -141,7 +141,7 @@ void Scanner::TokenizeAfterExplicitSign() {
     if (isdigit(ch)) {
         // number
         const std::int64_t n = (first_ch == '+') ? DecodeDigit() : -DecodeDigit();
-        token_ = Token::CreateInteger(n);
+        token_ = Token::CreateInteger(n, CurrPos());
         return;
     }
     // peculiar identifier
@@ -153,14 +153,14 @@ void Scanner::TokenizeAfterExplicitSign() {
             buffer.push_back(ch);
             ch = NextChar();
         }
-        token_ = Token::CreateIdentifier(buffer, table_);
+        token_ = Token::CreateIdentifier(buffer, table_, CurrPos());
         return;
     }
     if (ch == '.') {
         TokenizeAfterDot(first_ch);
         return;
     }
-    token_ = Token::CreateIdentifier(std::string(1, first_ch), table_);
+    token_ = Token::CreateIdentifier(std::string(1, first_ch), table_, CurrPos());
 }
 
 void Scanner::TokenizeEnclosedIdentifier() {
@@ -192,13 +192,13 @@ void Scanner::TokenizeEnclosedIdentifier() {
     if (ch != '|')
         throw ScanError(CurrPos(), "expected '|'");
     NextChar();
-    token_ = Token::CreateIdentifier(buffer, table_);
+    token_ = Token::CreateIdentifier(buffer, table_, CurrPos());
 }
 
 bool Scanner::TokenizeAfterSharp() {
     int ch = NextChar();
     if (ch == '(') {
-        token_ = Token::CreateOpenVector();
+        token_ = Token::CreateOpenVector(CurrPos());
         NextChar();
         return false;
     }
@@ -207,12 +207,12 @@ bool Scanner::TokenizeAfterSharp() {
         return false;
     }
     if (ch == 't') {
-        token_ = Token::CreateBoolean(true);
+        token_ = Token::CreateBoolean(true, CurrPos());
         NextChar();
         return false;
     }
     if (ch == 'f') {
-        token_ = Token::CreateBoolean(false);
+        token_ = Token::CreateBoolean(false, CurrPos());
         NextChar();
         return false;
     }
@@ -223,7 +223,7 @@ bool Scanner::TokenizeAfterSharp() {
         ch = NextChar();
         if (ch != '(')
             throw ScanError(CurrPos(), "expected '('");
-        token_ = Token::CreateOpenByteVector();
+        token_ = Token::CreateOpenByteVector(CurrPos());
         NextChar();
         return false;
     }
@@ -233,10 +233,10 @@ bool Scanner::TokenizeAfterSharp() {
             buffer.push_back(ch);
             ch = NextChar();
         }
-        token_ = Token::CreateLabel(std::stoll(buffer));
+        token_ = Token::CreateLabel(std::stoll(buffer), CurrPos());
         return false;
     }
-    token_ = Token::CreateSharp();
+    token_ = Token::CreateSharp(CurrPos());
     return false;
 }
 
@@ -246,11 +246,11 @@ void Scanner::TokenizeCharacter() {
         ch = NextChar();
         if (isalnum(ch)) {
             // #\x <hex scalar value>
-            token_ = Token::CreateCharacter(DecodeHex());
+            token_ = Token::CreateCharacter(DecodeHex(), CurrPos());
             return;
         }
         // character 'x'
-        token_ = Token::CreateCharacter('x');
+        token_ = Token::CreateCharacter('x', CurrPos());
         return;
     }
 
@@ -267,7 +267,7 @@ void Scanner::TokenizeCharacter() {
     }
 
     // #\ <character>
-    token_ = Token::CreateCharacter(ch);
+    token_ = Token::CreateCharacter(ch, CurrPos());
     return;
 }
 
@@ -288,11 +288,11 @@ void Scanner::TokenizeAfterDot(int first_ch) {
             buffer.push_back(ch);
             ch = NextChar();
         }
-        token_ = Token::CreateIdentifier(buffer, table_);
+        token_ = Token::CreateIdentifier(buffer, table_, CurrPos());
         return;
     }
     if (first_ch == -1) {
-        token_ = Token::CreatePeriod();
+        token_ = Token::CreatePeriod(CurrPos());
         return;
     }
     throw ScanError(CurrPos(), "expected a digit or dot subsequent");
@@ -336,28 +336,28 @@ void Scanner::TokenizeString() {
     if (ch != '"')
         throw ScanError(CurrPos(), "expected '\"'");
     NextChar();
-    token_ = Token::CreateString(buffer);
+    token_ = Token::CreateString(buffer, CurrPos());
 }
 
 Token Scanner::CharacterNameToToken(const std::string& name) {
     if (name == "alarm")
-        return Token::CreateCharacter(0x07);
+        return Token::CreateCharacter(0x07, CurrPos());
     if (name == "backspace")
-        return Token::CreateCharacter(0x08);
+        return Token::CreateCharacter(0x08, CurrPos());
     if (name == "delete")
-        return Token::CreateCharacter(0x7F);
+        return Token::CreateCharacter(0x7F, CurrPos());
     if (name == "escape")
-        return Token::CreateCharacter(0x1B);
+        return Token::CreateCharacter(0x1B, CurrPos());
     if (name == "newline")
-        return Token::CreateCharacter(0x0A);
+        return Token::CreateCharacter(0x0A, CurrPos());
     if (name == "null")
-        return Token::CreateCharacter(0x00);
+        return Token::CreateCharacter(0x00, CurrPos());
     if (name == "return")
-        return Token::CreateCharacter(0x0D);
+        return Token::CreateCharacter(0x0D, CurrPos());
     if (name == "space")
-        return Token::CreateCharacter(0x20);
+        return Token::CreateCharacter(0x20, CurrPos());
     if (name == "tab")
-        return Token::CreateCharacter(0x09);
+        return Token::CreateCharacter(0x09, CurrPos());
     throw ScanError(CurrPos(), "unknown character name: " + name);
 }
 

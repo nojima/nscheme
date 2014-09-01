@@ -17,7 +17,7 @@ std::string gFileName("test");
     std::istreambuf_iterator<char> last; \
     ObjectList objlist; \
     Scanner scanner(first, last, gFileName, &table); \
-    Parser parser(&scanner, &objlist);
+    Parser parser(&scanner, &table, &objlist);
 
 template<typename T>
 void ExpectObjectEq(const T& expect, const Object* obj) {
@@ -68,4 +68,10 @@ TEST(Parser, String) {
     PREPARE_PARSER("(print \"Hello, World!\")")
     Object* obj = parser.Parse();
     EXPECT_EQ("(print \"Hello, World!\")", obj->ToString());
+}
+
+TEST(Parser, Quote) {
+    PREPARE_PARSER("'(foo x y)")
+    Object* obj = parser.Parse();
+    EXPECT_EQ("(quote (foo x y))", obj->ToString());
 }

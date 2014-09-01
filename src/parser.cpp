@@ -43,6 +43,8 @@ Object* Parser::ParseDataum() {
         return ParseList();
     case TokenType::kOpenVector:
         return ParseVector();
+    case TokenType::kQuote:
+        return ParseQuote();
     default:
         // TODO: implement
         assert(0);
@@ -92,6 +94,15 @@ Object* Parser::ParseVector() {
     }
     scanner_->Next();
     return obj;
+}
+
+Object* Parser::ParseQuote() {
+    scanner_->Next();   // skip quote char
+    Object* obj = ParseDataum();
+    Object* p1 = object_list_->Create<PairObject>(obj, object_list_->Create<NilObject>());
+    Object* sym = object_list_->Create<SymbolObject>(table_->Get("quote"));
+    Object* p2 = object_list_->Create<PairObject>(sym, p1);
+    return p2;
 }
 
 }   // namespace nscheme

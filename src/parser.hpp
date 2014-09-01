@@ -12,8 +12,8 @@ namespace nscheme {
 
 class Parser {
 public:
-    explicit Parser(Scanner* scanner, ObjectList* object_list):
-        scanner_(scanner), object_list_(object_list) {
+    explicit Parser(Scanner* scanner, SymbolTable* table, ObjectList* object_list):
+        scanner_(scanner), table_(table), object_list_(object_list) {
         if (!scanner)
             throw std::logic_error("scanner must not be null");
     }
@@ -24,9 +24,11 @@ private:
     Object* ParseDataum();
     Object* ParseList();
     Object* ParseVector();
+    Object* ParseQuote();
 
     Scanner* scanner_;
     std::unordered_map<std::int64_t, Object*> label_map_;
+    SymbolTable* table_;
     ObjectList* object_list_;
 };
 

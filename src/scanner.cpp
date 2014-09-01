@@ -30,6 +30,14 @@ inline bool IsSubsequent(int ch) {
     return IsInitial(ch) || isdigit(ch) || IsSpecialSubsequent(ch);
 }
 
+inline bool IsSignSubsequent(int ch) {
+    return IsInitial(ch) || IsExplicitSign(ch) || ch == '@';
+}
+
+inline bool IsDotSubsequent(int ch) {
+    return IsSignSubsequent(ch) || ch == '.';
+}
+
 }   // namespace
 
 namespace nscheme {
@@ -45,12 +53,8 @@ retry:
         return;
     }
     if (isdigit(ch)) {
-        std::string buffer;
-        while (isdigit(ch)) {
-            buffer.push_back(ch);
-            ch = NextChar();
-        }
-        token_ = Token::CreateInteger(std::stoll(buffer));
+        // TODO: support float
+        token_ = Token::CreateInteger(DecodeDigit());
         return;
     }
     if (IsInitial(ch)) {
@@ -61,6 +65,14 @@ retry:
             ch = NextChar();
         }
         token_ = Token::CreateIdentifier(buffer, table_);
+        return;
+    }
+    if (IsExplicitSign(ch)) {
+        TokenizeAfterExplicitSign();
+        return;
+    }
+    if (ch == '.') {
+        TokenizeAfterDot(-1);
         return;
     }
     if (ch == '|') {
@@ -113,6 +125,34 @@ retry:
             ch = NextChar();
         goto retry;
     }
+}
+
+void Scanner::TokenizeAfterExplicitSign() {
+    const int first_ch = CurrChar();
+    int ch = NextChar();
+    if (isdigit(ch)) {
+        // number
+        const std::int64_t n = (first_ch == '+') ? DecodeDigit() : -DecodeDigit();
+        token_ = Token::CreateInteger(n);
+        return;
+    }
+    // peculiar identifier
+    if (IsSignSubsequent(ch)) {
+        std::string buffer(1, first_ch);
+        buffer.push_back(ch);
+        ch = NextChar();
+        while (IsSubsequent(ch)) {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+        token_ = Token::CreateIdentifier(buffer, table_);
+        return;
+    }
+    if (ch == '.') {
+        TokenizeAfterDot(first_ch);
+        return;
+    }
+    token_ = Token::CreateIdentifier(std::string(1, first_ch), table_);
 }
 
 void Scanner::TokenizeEnclosedIdentifier() {
@@ -225,6 +265,33 @@ void Scanner::TokenizeCharacter() {
     return;
 }
 
+void Scanner::TokenizeAfterDot(int first_ch) {
+    int ch = NextChar();
+    if (isdigit(ch)) {
+        // TODO: support float
+        throw ScanError(CurrPos(), "not implemented");
+    }
+    if (IsDotSubsequent(ch)) {
+        std::string buffer;
+        if (first_ch != -1)
+            buffer.push_back(first_ch);
+        buffer.push_back('.');
+        buffer.push_back(ch);
+        ch = NextChar();
+        while (IsSubsequent(ch)) {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+        token_ = Token::CreateIdentifier(buffer, table_);
+        return;
+    }
+    if (first_ch == -1) {
+        token_ = Token::CreatePeriod();
+        return;
+    }
+    throw ScanError(CurrPos(), "expected a digit or dot subsequent");
+}
+
 Token Scanner::CharacterNameToToken(const std::string& name) {
     if (name == "alarm")
         return Token::CreateCharacter(0x07);
@@ -259,6 +326,16 @@ char Scanner::DecodeMnemoicEscape() {
     }
 }
 
+std::int64_t Scanner::DecodeDigit() {
+    std::string buffer;
+    int ch = CurrChar();
+    while (isdigit(ch)) {
+        buffer.push_back(ch);
+        ch = NextChar();
+    }
+    return std::stoll(buffer);
+}
+
 char Scanner::DecodeHex() {
     std::string buffer;
     int ch = CurrChar();
@@ -267,7 +344,6 @@ char Scanner::DecodeHex() {
         ch = NextChar();
     }
     return std::stoi(buffer, 0, 16);
-
 }
 
 }   // namespace nscheme

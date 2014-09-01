@@ -22,9 +22,21 @@ std::string gFileName("test");
     Scanner scanner(first, last, gFileName, &table); \
     scanner.Next();
 
-TEST(Scanner, Integer) {
+TEST(Scanner, Integer1) {
     PREPARE_SCANNER("42")
     EXPECT_EQ(Token::CreateInteger(42), scanner.Get());
+}
+
+TEST(Scanner, Integer2) {
+    PREPARE_SCANNER("+1")
+    EXPECT_EQ(Token::CreateInteger(1), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Integer3) {
+    PREPARE_SCANNER("-1")
+    EXPECT_EQ(Token::CreateInteger(-1), scanner.Get());
     scanner.Next();
     EXPECT_EQ(Token::CreateEof(), scanner.Get());
 }
@@ -39,6 +51,34 @@ TEST(Scanner, Identifier1) {
 TEST(Scanner, Identifier2) {
     PREPARE_SCANNER("|hello world\\t\\|foo\\x40;hoge.com\\n|")
     EXPECT_EQ(Token::CreateIdentifier("hello world\t|foo@hoge.com\n", &table), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Identifier3) {
+    PREPARE_SCANNER("+")
+    EXPECT_EQ(Token::CreateIdentifier("+", &table), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Identifier4) {
+    PREPARE_SCANNER("+x")
+    EXPECT_EQ(Token::CreateIdentifier("+x", &table), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Identifier5) {
+    PREPARE_SCANNER("+.x")
+    EXPECT_EQ(Token::CreateIdentifier("+.x", &table), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, Identifier6) {
+    PREPARE_SCANNER(".x")
+    EXPECT_EQ(Token::CreateIdentifier(".x", &table), scanner.Get());
     scanner.Next();
     EXPECT_EQ(Token::CreateEof(), scanner.Get());
 }

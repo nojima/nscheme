@@ -46,10 +46,13 @@ private:
 
     Token CharacterNameToToken(const std::string& name);
 
+    void TokenizeAfterExplicitSign();
     void TokenizeEnclosedIdentifier();
     bool TokenizeAfterSharp();
     void TokenizeCharacter();
+    void TokenizeAfterDot(int first_ch);
     char DecodeMnemoicEscape();
+    std::int64_t DecodeDigit();
     char DecodeHex();
 
     std::istreambuf_iterator<char> it_;

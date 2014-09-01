@@ -78,7 +78,7 @@ public:
     NilObject() {}
 
     std::string ToString() const {
-        return "'()";
+        return "()";
     }
 
     bool operator==(const NilObject&) const {

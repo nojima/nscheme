@@ -34,10 +34,22 @@ TEST(Parser, Integer) {
     ExpectObjectEq<IntegerObject>(IntegerObject(42), obj);
 }
 
-TEST(Parser, List) {
-    PREPARE_PARSER("(x y z)");
+TEST(Parser, List1) {
+    PREPARE_PARSER("(x y z #t #f)");
     Object* obj = parser.Parse();
-    EXPECT_EQ("(x y z)", obj->ToString());
+    EXPECT_EQ("(x y z #t #f)", obj->ToString());
+}
+
+TEST(Parser, List2) {
+    PREPARE_PARSER("(x y z #t . #f)");
+    Object* obj = parser.Parse();
+    EXPECT_EQ("(x y z #t . #f)", obj->ToString());
+}
+
+TEST(Parser, List3) {
+    PREPARE_PARSER("()");
+    Object* obj = parser.Parse();
+    EXPECT_EQ("()", obj->ToString());
 }
 
 TEST(Parser, Vector) {
@@ -50,4 +62,10 @@ TEST(Parser, Define) {
     PREPARE_PARSER("(define (foo x y) (+ (* x 2) y))")
     Object* obj = parser.Parse();
     EXPECT_EQ("(define (foo x y) (+ (* x 2) y))", obj->ToString());
+}
+
+TEST(Parser, String) {
+    PREPARE_PARSER("(print \"Hello, World!\")")
+    Object* obj = parser.Parse();
+    EXPECT_EQ("(print \"Hello, World!\")", obj->ToString());
 }

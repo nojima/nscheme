@@ -137,6 +137,48 @@ TEST(Scanner, Comment) {
     }
 }
 
+TEST(Scanner, String1) {
+    PREPARE_SCANNER("\"hello, world\"")
+    EXPECT_EQ(Token::CreateString("hello, world"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, String2) {
+    PREPARE_SCANNER("\"hello\\tworld\"")
+    EXPECT_EQ(Token::CreateString("hello\tworld"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, String3) {
+    PREPARE_SCANNER("\"hello\\x40;world\"")
+    EXPECT_EQ(Token::CreateString("hello@world"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, String4) {
+    PREPARE_SCANNER("\"hello\\\"world\"")
+    EXPECT_EQ(Token::CreateString("hello\"world"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, String5) {
+    PREPARE_SCANNER("\"hello\\\\world\"")
+    EXPECT_EQ(Token::CreateString("hello\\world"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
+TEST(Scanner, String6) {
+    PREPARE_SCANNER("\"hello \\  \n\tworld\"")
+    EXPECT_EQ(Token::CreateString("hello world"), scanner.Get());
+    scanner.Next();
+    EXPECT_EQ(Token::CreateEof(), scanner.Get());
+}
+
 TEST(Scanner, DefineExpression) {
     PREPARE_SCANNER("(define (foo . x) (bar x #()))")
     std::vector<Token> expected_tokens = {

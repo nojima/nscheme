@@ -51,6 +51,7 @@ private:
     bool TokenizeAfterSharp();
     void TokenizeCharacter();
     void TokenizeAfterDot(int first_ch);
+    void TokenizeString();
     char DecodeMnemoicEscape();
     std::int64_t DecodeDigit();
     char DecodeHex();

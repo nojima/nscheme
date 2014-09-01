@@ -4,6 +4,10 @@
 
 namespace {
 
+inline bool IsHex(int ch) {
+    return isdigit(ch) || ('a' <= ch && ch <= 'f') || ('A' <= ch && ch <= 'F');
+}
+
 inline bool IsSpecialInitial(int ch) {
     switch (ch) {
     case '!': case '$': case '%': case '&': case '*': case '/': case ':':
@@ -125,6 +129,10 @@ retry:
             ch = NextChar();
         goto retry;
     }
+    if (ch == '"') {
+        TokenizeString();
+        return;
+    }
 }
 
 void Scanner::TokenizeAfterExplicitSign() {
@@ -163,8 +171,6 @@ void Scanner::TokenizeEnclosedIdentifier() {
             ch = NextChar();
             if (ch == 'x') {
                 ch = NextChar();
-                if (!isalnum(ch))
-                    throw ScanError(CurrPos(), "expected hex");
                 buffer.push_back(DecodeHex());
                 if (CurrChar() != ';')
                     throw ScanError(CurrPos(), "expected ';'");
@@ -292,6 +298,47 @@ void Scanner::TokenizeAfterDot(int first_ch) {
     throw ScanError(CurrPos(), "expected a digit or dot subsequent");
 }
 
+void Scanner::TokenizeString() {
+    int ch = NextChar();
+    std::string buffer;
+    while (ch != -1 && ch != '"') {
+        if (ch == '\\') {
+            ch = NextChar();
+            if (ch == '"') {
+                buffer.push_back('"');
+                ch = NextChar();
+            } else if (ch == '\\') {
+                buffer.push_back('\\');
+                ch = NextChar();
+            } else if (ch == 'x') {
+                NextChar();
+                buffer.push_back(DecodeHex());
+                if (CurrChar() != ';')
+                    throw ScanError(CurrPos(), "expected ';'");
+                ch = NextChar();
+            } else if (isspace(ch)) {
+                while (ch != -1 && isspace(ch) && ch != '\n')
+                    ch = NextChar();
+                if (ch != '\n')
+                    throw ScanError(CurrPos(), "expected end of line");
+                ch = NextChar();
+                while (ch != -1 && (ch == ' ' || ch == '\t'))
+                    ch = NextChar();
+            } else {
+                buffer.push_back(DecodeMnemoicEscape());
+                ch = NextChar();
+            }
+        } else {
+            buffer.push_back(ch);
+            ch = NextChar();
+        }
+    }
+    if (ch != '"')
+        throw ScanError(CurrPos(), "expected '\"'");
+    NextChar();
+    token_ = Token::CreateString(buffer);
+}
+
 Token Scanner::CharacterNameToToken(const std::string& name) {
     if (name == "alarm")
         return Token::CreateCharacter(0x07);
@@ -339,6 +386,8 @@ std::int64_t Scanner::DecodeDigit() {
 char Scanner::DecodeHex() {
     std::string buffer;
     int ch = CurrChar();
+    if (!IsHex(ch))
+        throw ScanError(CurrPos(), "expected hex");
     while (isalnum(ch)) {
         buffer.push_back(ch);
         ch = NextChar();

@@ -23,7 +23,7 @@ public:
 private:
     Object* ParseDataum();
     Object* ParseList();
-    //Object* ParseVector();
+    Object* ParseVector();
 
     Scanner* scanner_;
     std::unordered_map<std::int64_t, Object*> label_map_;

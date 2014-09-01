@@ -31,6 +31,10 @@ public:
         return value_ ? "#t" : "#f";
     }
 
+    bool operator==(const BooleanObject& rhs) const {
+        return value_ == rhs.value_;
+    }
+
 private:
     bool value_;
 };
@@ -41,6 +45,10 @@ public:
         data_(size, fill) {}
 
     std::string ToString() const;
+
+    bool operator==(const ByteVectorObject& rhs) const {
+        return data_ == rhs.data_;
+    }
 
 private:
     std::vector<std::uint8_t> data_;
@@ -57,6 +65,10 @@ public:
 
     std::string ToString() const;
 
+    bool operator==(const CharacterObject& rhs) const {
+        return value_ == rhs.value_;
+    }
+
 private:
     char value_;
 };
@@ -67,6 +79,10 @@ public:
 
     std::string ToString() const {
         return "'()";
+    }
+
+    bool operator==(const NilObject&) const {
+        return true;
     }
 };
 
@@ -80,6 +96,10 @@ public:
 
     std::string ToString() const {
         return std::to_string(value_);
+    }
+
+    bool operator==(const IntegerObject& rhs) const {
+        return value_ == rhs.value_;
     }
 
 private:
@@ -132,6 +152,10 @@ public:
 
     std::string ToString() const;
 
+    bool operator==(const StringObject& rhs) const {
+        return value_ == rhs.value_;
+    }
+
 private:
     std::string value_;
 };
@@ -148,8 +172,24 @@ public:
         return value_.ToString();
     }
 
+    bool operator==(const SymbolObject& rhs) const {
+        return value_ == rhs.value_;
+    }
+
 private:
     Symbol value_;
+};
+
+class VectorObject: public Object {
+public:
+    void Add(Object* obj) {
+        data_.push_back(obj);
+    }
+
+    std::string ToString() const;
+
+private:
+    std::vector<Object*> data_;
 };
 
 }

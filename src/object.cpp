@@ -78,4 +78,15 @@ std::string StringObject::ToString() const {
     return buffer;
 }
 
+std::string VectorObject::ToString() const {
+    std::string buffer("#(");
+    for (size_t i = 0; i < data_.size(); ++i) {
+        if (i != 0)
+            buffer.push_back(' ');
+        buffer += ObjectToString(data_[i]);
+    }
+    buffer.push_back(')');
+    return buffer;
+}
+
 }   // namespace nscheme

@@ -7,6 +7,12 @@ namespace nscheme {
 
 class ObjectList {
 public:
+    ~ObjectList() {
+        for (Object* p : objects_) {
+            delete p;
+        }
+    }
+
     template<typename T, typename ...Args>
     T* Create(Args&& ...args) {
         T* ptr = new T(std::forward<Args>(args)...);

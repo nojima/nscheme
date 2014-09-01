@@ -8,23 +8,37 @@ namespace nscheme {
 
 Object* Parser::Parse() {
     scanner_->Next();
+    return ParseDataum();
 }
 
 Object* Parser::ParseDataum() {
+    Object* obj;
     const Token& token = scanner_->Get();
     switch (token.Type()) {
     case TokenType::kTrue:
-        return object_list_->Create<BooleanObject>(true);
+        obj = object_list_->Create<BooleanObject>(true);
+        scanner_->Next();
+        return obj;
     case TokenType::kFalse:
-        return object_list_->Create<BooleanObject>(false);
+        obj = object_list_->Create<BooleanObject>(false);
+        scanner_->Next();
+        return obj;
     case TokenType::kInteger:
-        return object_list_->Create<IntegerObject>(token.Integer());
+        obj = object_list_->Create<IntegerObject>(token.Integer());
+        scanner_->Next();
+        return obj;
     case TokenType::kCharacter:
-        return object_list_->Create<CharacterObject>(token.Character());
+        obj = object_list_->Create<CharacterObject>(token.Character());
+        scanner_->Next();
+        return obj;
     case TokenType::kString:
-        return object_list_->Create<StringObject>(token.String());
+        obj = object_list_->Create<StringObject>(token.String());
+        scanner_->Next();
+        return obj;
     case TokenType::kIdentifier:
-        return object_list_->Create<SymbolObject>(token.Identifier());
+        obj = object_list_->Create<SymbolObject>(token.Identifier());
+        scanner_->Next();
+        return obj;
     case TokenType::kOpenParen:
         return ParseList();
     case TokenType::kOpenVector:
@@ -37,7 +51,7 @@ Object* Parser::ParseDataum() {
 
 Object* Parser::ParseList() {
     scanner_->Next();   // skip '('
-    Object* first = nullptr;
+    PairObject* first = nullptr;
     PairObject* last = nullptr;
     while (scanner_->Get().Type() != TokenType::kEof &&
            scanner_->Get().Type() != TokenType::kCloseParen) {
@@ -58,11 +72,26 @@ Object* Parser::ParseList() {
     if (scanner_->Get().Type() != TokenType::kCloseParen) {
         throw ParseError(scanner_->Get().Pos(), "expected ')'");
     }
+    scanner_->Next();
     if (first == nullptr) {
         return object_list_->Create<NilObject>();
     } else {
         return first;
     }
+}
+
+Object* Parser::ParseVector() {
+    scanner_->Next();   // skip '#('
+    VectorObject* obj = object_list_->Create<VectorObject>();
+    while (scanner_->Get().Type() != TokenType::kEof &&
+           scanner_->Get().Type() != TokenType::kCloseParen) {
+        obj->Add(ParseDataum());
+    }
+    if (scanner_->Get().Type() != TokenType::kCloseParen) {
+        throw ParseError(scanner_->Get().Pos(), "expected ')'");
+    }
+    scanner_->Next();
+    return obj;
 }
 
 }   // namespace nscheme

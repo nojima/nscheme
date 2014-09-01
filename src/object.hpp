@@ -37,13 +37,13 @@ private:
 
 class ByteVectorObject: public Object {
 public:
-    explicit ByteVectorObject(size_t size, char fill):
+    explicit ByteVectorObject(size_t size, std::uint8_t fill):
         data_(size, fill) {}
 
     std::string ToString() const;
 
 private:
-    std::vector<char> data_;
+    std::vector<std::uint8_t> data_;
 };
 
 

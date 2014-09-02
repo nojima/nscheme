@@ -3,6 +3,8 @@
 #include <vector>
 #include <utility>
 
+#include "object.hpp"
+
 namespace nscheme {
 
 class ObjectList {

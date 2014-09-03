@@ -21,6 +21,12 @@ public:
     Object* Parse();
 
 private:
+    // shortcut function to reduce redundant code
+    template <typename T, typename ...Args>
+    T* New(Args&& ...args) {
+        return NewObject<T>(object_list_, std::forward<Args>(args)...);
+    }
+
     Object* ParseDataum();
     Object* ParseList();
     Object* ParseVector();

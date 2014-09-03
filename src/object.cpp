@@ -3,15 +3,29 @@
 namespace nscheme {
 
 std::string ObjectToString(const Object* obj) {
+    if (IsInteger(obj))
+        return std::to_string(GetIntegerValue(obj));
+    if (IsNil(obj))
+        return "()";
+    if (IsBoolean(obj)) {
+        if (GetBooleanValue(obj))
+            return "#t";
+        else
+            return "#f";
+    }
+    if (IsSymbol(obj))
+        return GetSymbolValue(obj).ToString();
+    if (IsCharacter(obj)) {
+        char value = GetCharacterValue(obj);
+        if (isalnum(static_cast<unsigned char>(value))) {
+            return "#\\" + std::string(1, value);
+        } else {
+            char buffer[16];
+            std::snprintf(buffer, sizeof(buffer), "#\\x%02x", value);
+            return std::string(buffer);
+        }
+    }
     return obj->ToString();
-}
-
-bool IsNil(const Object* obj) {
-    return dynamic_cast<const NilObject*>(obj) != nullptr;
-}
-
-bool IsPair(const Object* obj) {
-    return dynamic_cast<const PairObject*>(obj) != nullptr;
 }
 
 std::string ByteVectorObject::ToString() const {
@@ -23,16 +37,6 @@ std::string ByteVectorObject::ToString() const {
     }
     buffer.push_back(')');
     return buffer;
-}
-
-std::string CharacterObject::ToString() const {
-    if (isalnum(static_cast<unsigned char>(value_))) {
-        return "#\\" + std::string(1, value_);
-    } else {
-        char buffer[16];
-        std::snprintf(buffer, sizeof(buffer), "#\\x%02x", value_);
-        return std::string(buffer);
-    }
 }
 
 std::string PairObject::ToString() const {

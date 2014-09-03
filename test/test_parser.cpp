@@ -19,59 +19,50 @@ std::string gFileName("test");
     Scanner scanner(first, last, gFileName, &table); \
     Parser parser(&scanner, &table, &objlist);
 
-template<typename T>
-void ExpectObjectEq(const T& expect, const Object* obj) {
-    const T* p = dynamic_cast<const T*>(obj);
-    EXPECT_NE(nullptr, p);
-    if (p != nullptr) {
-        EXPECT_EQ(expect, *p);
-    }
-}
-
 TEST(Parser, Integer) {
     PREPARE_PARSER("42")
     Object* obj = parser.Parse();
-    ExpectObjectEq<IntegerObject>(IntegerObject(42), obj);
+    EXPECT_EQ("42", ObjectToString(obj));
 }
 
 TEST(Parser, List1) {
     PREPARE_PARSER("(x y z #t #f)");
     Object* obj = parser.Parse();
-    EXPECT_EQ("(x y z #t #f)", obj->ToString());
+    EXPECT_EQ("(x y z #t #f)", ObjectToString(obj));
 }
 
 TEST(Parser, List2) {
     PREPARE_PARSER("(x y z #t . #f)");
     Object* obj = parser.Parse();
-    EXPECT_EQ("(x y z #t . #f)", obj->ToString());
+    EXPECT_EQ("(x y z #t . #f)", ObjectToString(obj));
 }
 
 TEST(Parser, List3) {
     PREPARE_PARSER("()");
     Object* obj = parser.Parse();
-    EXPECT_EQ("()", obj->ToString());
+    EXPECT_EQ("()", ObjectToString(obj));
 }
 
 TEST(Parser, Vector) {
     PREPARE_PARSER("#(#\\x #\\y)")
     Object* obj = parser.Parse();
-    EXPECT_EQ("#(#\\x #\\y)", obj->ToString());
+    EXPECT_EQ("#(#\\x #\\y)", ObjectToString(obj));
 }
 
 TEST(Parser, Define) {
     PREPARE_PARSER("(define (foo x y) (+ (* x 2) y))")
     Object* obj = parser.Parse();
-    EXPECT_EQ("(define (foo x y) (+ (* x 2) y))", obj->ToString());
+    EXPECT_EQ("(define (foo x y) (+ (* x 2) y))", ObjectToString(obj));
 }
 
 TEST(Parser, String) {
     PREPARE_PARSER("(print \"Hello, World!\")")
     Object* obj = parser.Parse();
-    EXPECT_EQ("(print \"Hello, World!\")", obj->ToString());
+    EXPECT_EQ("(print \"Hello, World!\")", ObjectToString(obj));
 }
 
 TEST(Parser, Quote) {
     PREPARE_PARSER("'(foo x y)")
     Object* obj = parser.Parse();
-    EXPECT_EQ("(quote (foo x y))", obj->ToString());
+    EXPECT_EQ("(quote (foo x y))", ObjectToString(obj));
 }

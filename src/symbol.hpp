@@ -22,6 +22,10 @@ public:
         return *p_;
     }
 
+    intptr_t InternalId() const {
+        return reinterpret_cast<intptr_t>(p_);
+    }
+
 private:
     const std::string* p_;
 

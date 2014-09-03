@@ -16,19 +16,19 @@ Object* Parser::ParseDataum() {
     const Token& token = scanner_->Get();
     switch (token.Type()) {
     case TokenType::kTrue:
-        obj = New<BooleanObject>(true);
+        obj = GetBooleanObject(true);
         scanner_->Next();
         return obj;
     case TokenType::kFalse:
-        obj = New<BooleanObject>(false);
+        obj = GetBooleanObject(false);
         scanner_->Next();
         return obj;
     case TokenType::kInteger:
-        obj = New<IntegerObject>(token.Integer());
+        obj = GetIntegerObject(token.Integer());
         scanner_->Next();
         return obj;
     case TokenType::kCharacter:
-        obj = New<CharacterObject>(token.Character());
+        obj = GetCharacterObject(token.Character());
         scanner_->Next();
         return obj;
     case TokenType::kString:
@@ -36,7 +36,7 @@ Object* Parser::ParseDataum() {
         scanner_->Next();
         return obj;
     case TokenType::kIdentifier:
-        obj = New<SymbolObject>(token.Identifier());
+        obj = GetSymbolObject(token.Identifier());
         scanner_->Next();
         return obj;
     case TokenType::kOpenParen:
@@ -53,30 +53,27 @@ Object* Parser::ParseDataum() {
 
 Object* Parser::ParseList() {
     scanner_->Next();   // skip '('
-    PairObject* first = nullptr;
-    PairObject* last = nullptr;
+    Object* first = GetNilObject();
+    Object* last = GetNilObject();
     while (scanner_->Get().Type() != TokenType::kEof &&
            scanner_->Get().Type() != TokenType::kCloseParen) {
-        if (first == nullptr) {
-            first = last = New<PairObject>(ParseDataum(), nullptr);
+        if (IsNil(first)) {
+            first = last = New<PairObject>(ParseDataum(), GetNilObject());
         } else if (scanner_->Get().Type() == TokenType::kPeriod) {
             scanner_->Next();   // skip '.'
-            last->SetCdr(ParseDataum());
+            static_cast<PairObject*>(last)->SetCdr(ParseDataum());
         } else {
             PairObject* obj = New<PairObject>(ParseDataum(), nullptr);
-            last->SetCdr(obj);
+            static_cast<PairObject*>(last)->SetCdr(obj);
             last = obj;
         }
-    }
-    if (last != nullptr & last->Cdr() == nullptr) {
-        last->SetCdr(New<NilObject>());
     }
     if (scanner_->Get().Type() != TokenType::kCloseParen) {
         throw ParseError(scanner_->Get().Pos(), "expected ')'");
     }
     scanner_->Next();
     if (first == nullptr) {
-        return New<NilObject>();
+        return GetNilObject();
     } else {
         return first;
     }
@@ -99,8 +96,8 @@ Object* Parser::ParseVector() {
 Object* Parser::ParseQuote() {
     scanner_->Next();   // skip quote char
     Object* obj = ParseDataum();
-    Object* p1 = New<PairObject>(obj, New<NilObject>());
-    Object* sym = New<SymbolObject>(table_->Get("quote"));
+    Object* p1 = New<PairObject>(obj, GetNilObject());
+    Object* sym = GetSymbolObject(table_->Get("quote"));
     Object* p2 = New<PairObject>(sym, p1);
     return p2;
 }

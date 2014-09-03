@@ -21,48 +21,48 @@ std::string gFileName("test");
 
 TEST(Parser, Integer) {
     PREPARE_PARSER("42")
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("42", ObjectToString(obj));
 }
 
 TEST(Parser, List1) {
     PREPARE_PARSER("(x y z #t #f)");
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("(x y z #t #f)", ObjectToString(obj));
 }
 
 TEST(Parser, List2) {
     PREPARE_PARSER("(x y z #t . #f)");
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("(x y z #t . #f)", ObjectToString(obj));
 }
 
 TEST(Parser, List3) {
     PREPARE_PARSER("()");
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("()", ObjectToString(obj));
 }
 
 TEST(Parser, Vector) {
     PREPARE_PARSER("#(#\\x #\\y)")
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("#(#\\x #\\y)", ObjectToString(obj));
 }
 
 TEST(Parser, Define) {
     PREPARE_PARSER("(define (foo x y) (+ (* x 2) y))")
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("(define (foo x y) (+ (* x 2) y))", ObjectToString(obj));
 }
 
 TEST(Parser, String) {
     PREPARE_PARSER("(print \"Hello, World!\")")
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("(print \"Hello, World!\")", ObjectToString(obj));
 }
 
 TEST(Parser, Quote) {
     PREPARE_PARSER("'(foo x y)")
-    Object* obj = parser.Parse();
+    ObjectRef obj = parser.Parse();
     EXPECT_EQ("(quote (foo x y))", ObjectToString(obj));
 }

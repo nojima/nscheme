@@ -2,7 +2,7 @@
 
 namespace nscheme {
 
-std::string ObjectToString(const Object* obj) {
+std::string ObjectToString(ObjectRef obj) {
     if (IsInteger(obj))
         return std::to_string(GetIntegerValue(obj));
     if (IsNil(obj))
@@ -25,7 +25,7 @@ std::string ObjectToString(const Object* obj) {
             return std::string(buffer);
         }
     }
-    return obj->ToString();
+    return reinterpret_cast<const Object*>(obj)->ToString();
 }
 
 std::string ByteVectorObject::ToString() const {
@@ -57,7 +57,7 @@ std::string PairObject::ToString() const {
             buffer += ObjectToString(obj->cdr_);
             break;
         }
-        obj = static_cast<PairObject*>(obj->cdr_);
+        obj = reinterpret_cast<PairObject*>(obj->cdr_);
     }
     buffer += ")";
     return buffer;

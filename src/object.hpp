@@ -15,10 +15,23 @@ public:
     virtual std::string ToString() const = 0;
 };
 
-std::string ObjectToString(const Object* obj);
-inline bool IsRefObject(const Object* obj) {
+typedef std::uint64_t ObjectRef;
+
+std::string ObjectToString(ObjectRef obj);
+
+inline bool IsRefObject(ObjectRef obj) {
     return (reinterpret_cast<std::uint64_t>(obj) & 3) == 0 &&
            reinterpret_cast<std::uint64_t>(obj) > 8;
+}
+
+template <typename T>
+inline ObjectRef ref_cast(T* obj) {
+    return reinterpret_cast<ObjectRef>(obj);
+}
+
+template <typename T>
+inline T dynamic_ref_cast(ObjectRef obj) {
+    return IsRefObject(obj) ? dynamic_cast<T>(reinterpret_cast<Object*>(obj)) : nullptr;
 }
 
 class ByteVectorObject: public Object {
@@ -36,48 +49,48 @@ private:
     std::vector<std::uint8_t> data_;
 };
 
-inline bool IsByteVector(const Object* obj) {
-    return IsRefObject(obj) && dynamic_cast<const ByteVectorObject*>(obj) != nullptr;
+inline bool IsByteVector(ObjectRef obj) {
+    return dynamic_ref_cast<const ByteVectorObject*>(obj) != nullptr;
 }
 
 class PairObject: public Object {
 public:
-    PairObject(Object* car, Object* cdr):
+    PairObject(ObjectRef car, ObjectRef cdr):
         car_(car), cdr_(cdr) {}
 
-    Object* Car() {
+    ObjectRef Car() {
         return car_;
     }
 
-    const Object* Car() const {
+    /*const*/ ObjectRef Car() const {
         return car_;
     }
 
-    void SetCar(Object* car) {
+    void SetCar(ObjectRef car) {
         car_ = car;
     }
 
-    Object* Cdr() {
+    ObjectRef Cdr() {
         return cdr_;
     }
 
-    const Object* Cdr() const {
+    /*const*/ ObjectRef Cdr() const {
         return cdr_;
     }
 
-    void SetCdr(Object* cdr) {
+    void SetCdr(ObjectRef cdr) {
         cdr_ = cdr;
     }
 
     std::string ToString() const;
 
 private:
-    Object* car_;
-    Object* cdr_;
+    ObjectRef car_;
+    ObjectRef cdr_;
 };
 
-inline bool IsPair(const Object* obj) {
-    return IsRefObject(obj) && dynamic_cast<const PairObject*>(obj) != nullptr;
+inline bool IsPair(ObjectRef obj) {
+    return dynamic_ref_cast<const PairObject*>(obj) != nullptr;
 }
 
 class StringObject: public Object {
@@ -98,24 +111,24 @@ private:
     std::string value_;
 };
 
-inline bool IsString(const Object* obj) {
-    return IsRefObject(obj) && dynamic_cast<const StringObject*>(obj) != nullptr;
+inline bool IsString(ObjectRef obj) {
+    return dynamic_ref_cast<const StringObject*>(obj) != nullptr;
 }
 
 class VectorObject: public Object {
 public:
-    void Add(Object* obj) {
+    void Add(ObjectRef obj) {
         data_.push_back(obj);
     }
 
     std::string ToString() const;
 
 private:
-    std::vector<Object*> data_;
+    std::vector<ObjectRef> data_;
 };
 
-inline bool IsVector(const Object* obj) {
-    return IsRefObject(obj) && dynamic_cast<const VectorObject*>(obj) != nullptr;
+inline bool IsVector(ObjectRef obj) {
+    return dynamic_ref_cast<const VectorObject*>(obj) != nullptr;
 }
 
 enum class ValueTag: std::uint64_t {
@@ -128,65 +141,63 @@ enum class ValueTag: std::uint64_t {
 };
 
 class NilObject: public Object {};
-inline bool IsNil(const Object* obj) {
-    return obj == reinterpret_cast<Object*>(ValueTag::kNil);
+inline bool IsNil(ObjectRef obj) {
+    return obj == static_cast<ObjectRef>(ValueTag::kNil);
 }
-inline NilObject* GetNilObject() {
-    return reinterpret_cast<NilObject*>(ValueTag::kNil);
+inline ObjectRef GetNilObject() {
+    return static_cast<ObjectRef>(ValueTag::kNil);
 }
 
 class BooleanObject: public Object {};
-inline bool IsBoolean(const Object* obj) {
-    return obj == reinterpret_cast<Object*>(ValueTag::kTrue) ||
-           obj == reinterpret_cast<Object*>(ValueTag::kFalse);
+inline bool IsBoolean(ObjectRef obj) {
+    return obj == static_cast<ObjectRef>(ValueTag::kTrue) ||
+           obj == static_cast<ObjectRef>(ValueTag::kFalse);
 }
-inline bool GetBooleanValue(const Object* obj) {
+inline bool GetBooleanValue(ObjectRef obj) {
     assert(IsBoolean(obj));
-    return obj != reinterpret_cast<Object*>(ValueTag::kFalse);
+    return obj != static_cast<ObjectRef>(ValueTag::kFalse);
 }
-inline BooleanObject* GetBooleanObject(bool b) {
+inline ObjectRef GetBooleanObject(bool b) {
     if (b)
-        return reinterpret_cast<BooleanObject*>(ValueTag::kTrue);
+        return static_cast<ObjectRef>(ValueTag::kTrue);
     else
-        return reinterpret_cast<BooleanObject*>(ValueTag::kFalse);
+        return static_cast<ObjectRef>(ValueTag::kFalse);
 }
 
 class CharacterObject: public Object {};
-inline bool IsCharacter(const Object* obj) {
-    return (reinterpret_cast<std::uint64_t>(obj) & 3) == static_cast<std::uint64_t>(ValueTag::kCharacter);
+inline bool IsCharacter(ObjectRef obj) {
+    return (obj & 3) == static_cast<ObjectRef>(ValueTag::kCharacter);
 }
-inline char GetCharacterValue(const Object* obj) {
+inline char GetCharacterValue(ObjectRef obj) {
     assert(IsCharacter(obj));
-    return static_cast<char>(reinterpret_cast<std::uint64_t>(obj) >> 2);
+    return static_cast<char>(obj >> 2);
 }
-inline CharacterObject* GetCharacterObject(char&& ch) {
-    return reinterpret_cast<CharacterObject*>((ch << 2) | static_cast<intptr_t>(ValueTag::kCharacter));
+inline ObjectRef GetCharacterObject(char ch) {
+    return (ch << 2) | static_cast<ObjectRef>(ValueTag::kCharacter);
 }
 
 class IntegerObject: public Object {};
-inline bool IsInteger(const Object* obj) {
-    return (reinterpret_cast<std::uint64_t>(obj) & 3) == static_cast<std::uint64_t>(ValueTag::kInteger);
+inline bool IsInteger(ObjectRef obj) {
+    return (obj & 3) == static_cast<ObjectRef>(ValueTag::kInteger);
 }
-inline std::int64_t GetIntegerValue(const Object* obj) {
+inline std::int64_t GetIntegerValue(ObjectRef obj) {
     assert(IsInteger(obj));
-    return reinterpret_cast<std::int64_t>(obj) >> 2;
+    return static_cast<std::int64_t>(obj) >> 2;
 }
-inline IntegerObject* GetIntegerObject(std::int64_t n) {
-    return reinterpret_cast<IntegerObject*>((n << 2) | static_cast<std::int64_t>(ValueTag::kInteger));
+inline ObjectRef GetIntegerObject(std::int64_t n) {
+    return (n << 2) | static_cast<ObjectRef>(ValueTag::kInteger);
 }
 
 class SymbolObject: public Object {};
-inline bool IsSymbol(const Object* obj) {
-    return (reinterpret_cast<std::uint64_t>(obj) & 3) == static_cast<std::uint64_t>(ValueTag::kSymbol);
+inline bool IsSymbol(ObjectRef obj) {
+    return (obj & 3) == static_cast<ObjectRef>(ValueTag::kSymbol);
 }
-inline Symbol GetSymbolValue(const Object* obj) {
+inline Symbol GetSymbolValue(ObjectRef obj) {
     assert(IsSymbol(obj));
-    return Symbol(
-            reinterpret_cast<const std::string*>(
-                reinterpret_cast<std::uint64_t>(obj) & ~static_cast<std::uint64_t>(3)));
+    return Symbol(reinterpret_cast<const std::string*>(obj & ~static_cast<ObjectRef>(3)));
 }
-inline SymbolObject* GetSymbolObject(Symbol symbol) {
-    return reinterpret_cast<SymbolObject*>(symbol.InternalId() | static_cast<intptr_t>(ValueTag::kSymbol));
+inline ObjectRef GetSymbolObject(Symbol symbol) {
+    return static_cast<ObjectRef>(symbol.InternalId() | static_cast<intptr_t>(ValueTag::kSymbol));
 }
 
 }   // namespace nscheme

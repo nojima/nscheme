@@ -6,13 +6,13 @@
 
 namespace nscheme {
 
-Object* Parser::Parse() {
+ObjectRef Parser::Parse() {
     scanner_->Next();
     return ParseDataum();
 }
 
-Object* Parser::ParseDataum() {
-    Object* obj;
+ObjectRef Parser::ParseDataum() {
+    ObjectRef obj;
     const Token& token = scanner_->Get();
     switch (token.Type()) {
     case TokenType::kTrue:
@@ -32,7 +32,7 @@ Object* Parser::ParseDataum() {
         scanner_->Next();
         return obj;
     case TokenType::kString:
-        obj = New<StringObject>(token.String());
+        obj = ref_cast(New<StringObject>(token.String()));
         scanner_->Next();
         return obj;
     case TokenType::kIdentifier:
@@ -51,20 +51,20 @@ Object* Parser::ParseDataum() {
     }
 }
 
-Object* Parser::ParseList() {
+ObjectRef Parser::ParseList() {
     scanner_->Next();   // skip '('
-    Object* first = GetNilObject();
-    Object* last = GetNilObject();
+    ObjectRef first = GetNilObject();
+    ObjectRef last = GetNilObject();
     while (scanner_->Get().Type() != TokenType::kEof &&
            scanner_->Get().Type() != TokenType::kCloseParen) {
         if (IsNil(first)) {
-            first = last = New<PairObject>(ParseDataum(), GetNilObject());
+            first = last = ref_cast(New<PairObject>(ParseDataum(), GetNilObject()));
         } else if (scanner_->Get().Type() == TokenType::kPeriod) {
             scanner_->Next();   // skip '.'
-            static_cast<PairObject*>(last)->SetCdr(ParseDataum());
+            reinterpret_cast<PairObject*>(last)->SetCdr(ParseDataum());
         } else {
-            PairObject* obj = New<PairObject>(ParseDataum(), nullptr);
-            static_cast<PairObject*>(last)->SetCdr(obj);
+            ObjectRef obj = ref_cast(New<PairObject>(ParseDataum(), GetNilObject()));
+            reinterpret_cast<PairObject*>(last)->SetCdr(obj);
             last = obj;
         }
     }
@@ -72,14 +72,10 @@ Object* Parser::ParseList() {
         throw ParseError(scanner_->Get().Pos(), "expected ')'");
     }
     scanner_->Next();
-    if (first == nullptr) {
-        return GetNilObject();
-    } else {
-        return first;
-    }
+    return first;
 }
 
-Object* Parser::ParseVector() {
+ObjectRef Parser::ParseVector() {
     scanner_->Next();   // skip '#('
     VectorObject* obj = New<VectorObject>();
     while (scanner_->Get().Type() != TokenType::kEof &&
@@ -90,15 +86,15 @@ Object* Parser::ParseVector() {
         throw ParseError(scanner_->Get().Pos(), "expected ')'");
     }
     scanner_->Next();
-    return obj;
+    return ref_cast(obj);
 }
 
-Object* Parser::ParseQuote() {
+ObjectRef Parser::ParseQuote() {
     scanner_->Next();   // skip quote char
-    Object* obj = ParseDataum();
-    Object* p1 = New<PairObject>(obj, GetNilObject());
-    Object* sym = GetSymbolObject(table_->Get("quote"));
-    Object* p2 = New<PairObject>(sym, p1);
+    ObjectRef obj = ParseDataum();
+    ObjectRef p1 = ref_cast(New<PairObject>(obj, GetNilObject()));
+    ObjectRef sym = GetSymbolObject(table_->Get("quote"));
+    ObjectRef p2 = ref_cast(New<PairObject>(sym, p1));
     return p2;
 }
 

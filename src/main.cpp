@@ -17,7 +17,7 @@ int main()
     try {
         Scanner scanner(first, last, filename, &table);
         Parser parser(&scanner, &table, &object_list);
-        Object* obj = parser.Parse();
+        ObjectRef obj = parser.Parse();
         std::cout << ObjectToString(obj) << std::endl;
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

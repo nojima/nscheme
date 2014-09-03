@@ -18,7 +18,7 @@ public:
             throw std::logic_error("scanner must not be null");
     }
 
-    Object* Parse();
+    ObjectRef Parse();
 
 private:
     // shortcut function to reduce redundant code
@@ -27,13 +27,13 @@ private:
         return NewObject<T>(object_list_, std::forward<Args>(args)...);
     }
 
-    Object* ParseDataum();
-    Object* ParseList();
-    Object* ParseVector();
-    Object* ParseQuote();
+    ObjectRef ParseDataum();
+    ObjectRef ParseList();
+    ObjectRef ParseVector();
+    ObjectRef ParseQuote();
 
     Scanner* scanner_;
-    std::unordered_map<std::int64_t, Object*> label_map_;
+    std::unordered_map<std::int64_t, ObjectRef> label_map_;
     SymbolTable* table_;
     ObjectList* object_list_;
 };

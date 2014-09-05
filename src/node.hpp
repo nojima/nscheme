@@ -52,7 +52,6 @@ public:
 private:
     static bool isSelfEvaluating(Value value) {
         if (value.isInteger()) return true;
-        if (value.isInteger()) return true;
         if (value.isCharacter()) return true;
         if (value == Value::True) return true;
         if (value == Value::False) return true;
@@ -72,8 +71,8 @@ private:
 
 class ProcedureCallNode: public ExprNode {
 public:
-    ProcedureCallNode(const Position& position, Node* callee,
-                      const std::vector<Node*>& operand)
+    ProcedureCallNode(const Position& position, ExprNode* callee,
+                      const std::vector<ExprNode*>& operand)
         : ExprNode(position), callee_(callee), operand_(operand) {}
 
     std::string toString() const override {
@@ -88,8 +87,8 @@ public:
     }
 
 private:
-    Node* callee_;
-    std::vector<Node*> operand_;
+    ExprNode* callee_;
+    std::vector<ExprNode*> operand_;
 };
 
 class DefineNode: public Node {

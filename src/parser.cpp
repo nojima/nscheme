@@ -70,20 +70,26 @@ Value Parser::parseList() {
     while (token_.getType() != TokenType::kEof &&
            token_.getType() != TokenType::kCloseParen) {
         if (first == nullptr) {
+            Position pos = token_.getPosition();
             first = last = allocator_->make<PairObject>(parseDatum(), Value::Nil);
+            source_map_->insert(std::make_pair(last, pos));
         } else if (token_.getType() == TokenType::kPeriod) {
             token_ = scanner_->getToken();      // skip '.'
             last->setCdr(parseDatum());
+            if (token_.getType() != TokenType::kCloseParen)
+                throw ParseError(token_.getPosition(), "expected ')'");
+            break;
         } else {
+            Position pos = token_.getPosition();
             PairObject* p = allocator_->make<PairObject>(parseDatum(), Value::Nil);
             last->setCdr(Value::fromPointer(p));
             last = p;
+            source_map_->insert(std::make_pair(last, pos));
         }
     }
     if (token_.getType() != TokenType::kCloseParen)
         throw ParseError(position, "unclosed list");
     token_ = scanner_->getToken();
-    source_map_->insert(std::make_pair(first, position));
     return Value::fromPointer(first);
 }
 
@@ -103,6 +109,7 @@ Value Parser::parseVector() {
 }
 
 Value Parser::parseAbbr() {
+    Position position = token_.getPosition();
     TokenType type = token_.getType();
     const char* name;
     switch (type) {
@@ -118,6 +125,8 @@ Value Parser::parseAbbr() {
     PairObject* p1 = allocator_->make<PairObject>(v, Value::Nil);
     PairObject* p2 = allocator_->make<PairObject>(
         Value::fromSymbol(symbol), Value::fromPointer(p1));
+    source_map_->insert(std::make_pair(p1, position));
+    source_map_->insert(std::make_pair(p2, position));
     return Value::fromPointer(p2);
 }
 

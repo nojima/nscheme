@@ -2,14 +2,14 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 #include "scanner.hpp"
 #include "symbol_table.hpp"
 #include "allocator.hpp"
 #include "value.hpp"
+#include "source_map.hpp"
 
 namespace nscheme {
-
-using SourceMap = std::unordered_map<Object*, Position>;
 
 class Parser {
 public:

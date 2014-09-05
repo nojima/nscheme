@@ -23,6 +23,18 @@ private:
     std::string str_;
 };
 
+class RealObject: public Object {
+public:
+    RealObject(double real): real_(real) {}
+
+    std::string toString() const override {
+        return std::to_string(real_);
+    }
+
+private:
+    double real_;
+};
+
 class PairObject: public Object {
 public:
     PairObject(Value car, Value cdr)

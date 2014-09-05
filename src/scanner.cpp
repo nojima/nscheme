@@ -40,6 +40,10 @@ Token Scanner::getToken() {
         ch_ = reader_->getChar();
     }
 
+    if (ch_ == EOF) {
+        return Token(TokenType::kEof, getPosition());
+    }
+
     if (isInitial(ch_)) {
         return tokenizeIdentifier();
     }

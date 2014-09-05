@@ -14,15 +14,19 @@ public:
     static const Value True;
     static const Value Undefined;
 
-    static Value makeInteger(int64_t n) {
+    static Value fromPointer(Object* obj) {
+        return Value(reinterpret_cast<uint64_t>(obj));
+    }
+
+    static Value fromInteger(int64_t n) {
         return Value((n << kShift) | kFlagInteger);
     }
 
-    static Value makeSymbol(Symbol symbol) {
+    static Value fromSymbol(Symbol symbol) {
         return Value(symbol.getInternalId() | kFlagSymbol);
     }
 
-    static Value makeCharacter(uint32_t character) {
+    static Value fromCharacter(uint32_t character) {
         return Value((character << kShift) | kFlagCharacter);
     }
 

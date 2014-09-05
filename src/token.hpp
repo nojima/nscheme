@@ -6,6 +6,7 @@
 namespace nscheme {
 
 enum class TokenType {
+    kEof,
     kIdentifier,
     kFalse,
     kTrue,

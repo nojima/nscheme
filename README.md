@@ -1,4 +1,4 @@
 nscheme
 =======
 
-A scheme implementation using LLVM.
+A scheme implementation.

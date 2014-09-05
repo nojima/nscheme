@@ -5,12 +5,11 @@ WARNING_OPTIONS = -Wall -Wextra -Weffc++ -Woverloaded-virtual -fcolor-diagnostic
 OPTIMIZATION_OPTIONS = -O3 -fno-omit-frame-pointer
 CODE_GENERATION_OPTIONS = -fPIC
 PREPROCESSOR_OPTIONS = -MMD -MP
-LLVM_OPTIONS = $(shell llvm-config --cppflags | sed -e 's/-DNDEBUG //')
 DEBUGGING_OPTIONS = -gdwarf-3 -fsanitize=address
-CXXFLAGS = $(LANGUAGE_OPTIONS) $(WARNING_OPTIONS) $(OPTIMIZATION_OPTIONS) $(CODE_GENERATION_OPTIONS) $(PREPROCESSOR_OPTIONS) $(LLVM_OPTIONS) $(DEBUGGING_OPTIONS)
+CXXFLAGS = $(LANGUAGE_OPTIONS) $(WARNING_OPTIONS) $(OPTIMIZATION_OPTIONS) $(CODE_GENERATION_OPTIONS) $(PREPROCESSOR_OPTIONS) $(DEBUGGING_OPTIONS)
 
-LDFLAGS = $(shell llvm-config --ldflags) -fsanitize=address
-LIBS = $(shell llvm-config --libs core)
+LDFLAGS = -fsanitize=address
+LIBS = -lm
 
 SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(patsubst src/%.cpp, obj/main/%.o, $(SOURCES))

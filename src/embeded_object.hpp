@@ -13,6 +13,7 @@ enum class ValueTag: std::uint64_t {
     kSymbol = 2,
     kCharacter = 3,
     kFalse = 4,
+    kUndefined = 8,
 };
 
 inline bool IsNil(ObjectRef obj) {
@@ -77,6 +78,14 @@ inline Symbol GetSymbolValue(ObjectRef obj) {
 
 inline ObjectRef GetSymbolObject(Symbol symbol) {
     return static_cast<ObjectRef>(symbol.InternalId() | static_cast<intptr_t>(ValueTag::kSymbol));
+}
+
+inline ObjectRef GetUndefinedObject() {
+    return static_cast<ObjectRef>(ValueTag::kUndefined);
+}
+
+inline bool IsUndefined(ObjectRef obj) {
+    return obj == static_cast<ObjectRef>(ValueTag::kUndefined);
 }
 
 }   // namespace nscheme

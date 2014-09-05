@@ -4,7 +4,7 @@ namespace nscheme {
 
 std::string LambdaNode::toString() const {
     std::string buffer("(lambda ");
-    if (is_variable_) {
+    if (variable_args_) {
         if (arg_names_.size() == 1) {
             buffer += arg_names_[0].toString();
         } else {
@@ -27,13 +27,19 @@ std::string LambdaNode::toString() const {
         }
         buffer.push_back(')');
     }
-    for (DefineNode* def : defines_) {
-        buffer.push_back(' ');
-        buffer += def->toString();
+    /*
+    if (!local_names_.empty()) {
+        buffer += " [local-names";
+        for (Symbol symbol : local_names_) {
+            buffer.push_back(' ');
+            buffer += symbol.toString();
+        }
+        buffer.push_back(']');
     }
-    for (ExprNode* expr : exprs_) {
+    */
+    for (Node* node : nodes_) {
         buffer.push_back(' ');
-        buffer += expr->toString();
+        buffer += node->toString();
     }
     buffer.push_back(')');
     return buffer;

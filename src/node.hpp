@@ -96,6 +96,10 @@ public:
     DefineNode(const Position& position, Symbol name, ExprNode* expr)
         : Node(position), name_(name), expr_(expr) {}
 
+    Symbol getName() const noexcept {
+        return name_;
+    }
+
     std::string toString() const override {
         std::string buffer("(define ");
         buffer += name_.toString();
@@ -113,20 +117,20 @@ private:
 class LambdaNode: public ExprNode {
 public:
     LambdaNode(const Position& position,
-               const std::vector<Symbol>& arg_names, bool is_variable,
-               const std::vector<DefineNode*>& defines,
-               const std::vector<ExprNode*>& exprs)
+               const std::vector<Symbol>& arg_names, bool variable_args,
+               const std::vector<Symbol>& local_names,
+               const std::vector<Node*>& nodes)
         : ExprNode(position)
-        , arg_names_(arg_names), is_variable_(is_variable)
-        , defines_(defines), exprs_(exprs) {}
+        , arg_names_(arg_names), variable_args_(variable_args)
+        , local_names_(local_names), nodes_(nodes) {}
 
     std::string toString() const override;
 
 private:
     std::vector<Symbol> arg_names_;
-    bool is_variable_;
-    std::vector<DefineNode*> defines_;
-    std::vector<ExprNode*> exprs_;
+    bool variable_args_;
+    std::vector<Symbol> local_names_;
+    std::vector<Node*> nodes_;
 };
 
 class IfNode: public ExprNode {

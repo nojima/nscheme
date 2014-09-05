@@ -23,12 +23,14 @@ public:
     Node* analyze(Value datum);
 
 private:
+    Node* analyzeExprOrDefine(Value value, const Position& position);
     ExprNode* analyzeExpr(Value value, const Position& position);
     ExprNode* analyzeProcedureCall(PairObject* list, const Position& position);
     ExprNode* analyzeLambda(Value value, const Position& position);
     ExprNode* analyzeIf(Value value, const Position& position);
     ExprNode* analyzeAssignment(Value value, const Position& position);
     ExprNode* analyzeQuote(Value value, const Position& position);
+    Node* analyzeDefine(Value value, const Position& position);
 
     SymbolTable* symbol_table_;
     Allocator* allocator_;

@@ -38,6 +38,16 @@ Node* Analyzer::analyze(Value datum) {
     return analyzeExpr(datum, dummy);
 }
 
+Node* Analyzer::analyzeExprOrDefine(Value value, const Position& position) {
+    if (isPair(value)) {
+        PairObject* p = static_cast<PairObject*>(value.asPointer());
+        Value head = p->getCar();
+        if (head == Value::fromSymbol(kwd_define_))
+            return analyzeDefine(p->getCdr(), source_map_->at(p));
+    }
+    return analyzeExpr(value, position);
+}
+
 ExprNode* Analyzer::analyzeExpr(Value value, const Position& position) {
     if (value.isSymbol()) {
         return allocator_->make<VariableNode>(position, value.asSymbol());
@@ -53,11 +63,9 @@ ExprNode* Analyzer::analyzeExpr(Value value, const Position& position) {
         throw AnalyzeError(position, "invalid expression");
 
     Value head = p->getCar();
-    /*
     if (head == Value::fromSymbol(kwd_lambda_)) {
-        return analyzeLambda(p->getCdr(), (*source_map_)[p]);
+        return analyzeLambda(p->getCdr(), source_map_->at(p));
     }
-    */
     if (head == Value::fromSymbol(kwd_if_)) {
         return analyzeIf(p->getCdr(), source_map_->at(p));
     }
@@ -68,6 +76,56 @@ ExprNode* Analyzer::analyzeExpr(Value value, const Position& position) {
         return analyzeQuote(p->getCdr(), source_map_->at(p));
     }
     return analyzeProcedureCall(p, source_map_->at(p));
+}
+
+ExprNode* Analyzer::analyzeLambda(Value value, const Position& position) {
+    if (!isPair(value))
+        throw AnalyzeError(position, "invalid syntax of 'lambda'");
+    PairObject* p1 = static_cast<PairObject*>(value.asPointer());
+    if (!isPair(p1->getCdr()))
+        throw AnalyzeError(position, "invalid syntax of 'lambda'");
+
+    bool variable = false;
+    std::vector<Symbol> args;
+
+    Value v1 = p1->getCar();
+    if (v1.isSymbol()) {
+        variable = true;
+        args.push_back(v1.asSymbol());
+    } else if (isPair(v1)) {
+        Value v = v1;
+        while (isPair(v)) {
+            PairObject* p = static_cast<PairObject*>(v.asPointer());
+            Value arg = p->getCar();
+            if (!arg.isSymbol())
+                throw AnalyzeError(source_map_->at(p), "argument name must be a symbol");
+            args.push_back(arg.asSymbol());
+            v = p->getCdr();
+        }
+        if (v != Value::Nil) {
+            if (!v.isSymbol())
+                throw AnalyzeError(position, "argument name must be a symbol");
+            variable = true;
+            args.push_back(v.asSymbol());
+        }
+    }
+
+    std::vector<Node*> nodes;
+    std::vector<Symbol> local_names;
+    Value v = p1->getCdr();
+    while (v != Value::Nil) {
+        if (!isPair(v))
+            throw AnalyzeError(position, "invalid lambda body");
+        PairObject* p = static_cast<PairObject*>(v.asPointer());
+        Node* node = analyzeExprOrDefine(p->getCar(), source_map_->at(p));
+        nodes.push_back(node);
+        if (DefineNode* def = dynamic_cast<DefineNode*>(node)) {
+            local_names.push_back(def->getName());
+        }
+        v = p->getCdr();
+    }
+    return allocator_->make<LambdaNode>(position, std::move(args), variable,
+                                        std::move(local_names), std::move(nodes));
 }
 
 ExprNode* Analyzer::analyzeProcedureCall(PairObject* list, const Position& position) {
@@ -125,8 +183,30 @@ ExprNode* Analyzer::analyzeQuote(Value value, const Position& position) {
         throw AnalyzeError(position, "invalid syntax of 'quote'");
     PairObject* p = static_cast<PairObject*>(value.asPointer());
     if (p->getCdr() != Value::Nil)
-        throw AnalyzeError(position, "invalid syntax of quote");
+        throw AnalyzeError(position, "invalid syntax of 'quote'");
     return allocator_->make<LiteralNode>(position, p->getCar());
+}
+
+Node* Analyzer::analyzeDefine(Value value, const Position& position) {
+    if (!isPair(value))
+        throw AnalyzeError(position, "invalid syntax of 'define'");
+    PairObject* p1 = static_cast<PairObject*>(value.asPointer());
+    if (!isPair(p1->getCdr()))
+        throw AnalyzeError(position, "invalid syntax of 'define'");
+    PairObject* p2 = static_cast<PairObject*>(p1->getCdr().asPointer());
+    if (p2->getCdr() != Value::Nil)
+        throw AnalyzeError(position, "invalid syntax of 'define'");
+
+    Value v1 = p1->getCar();
+    if (v1.isSymbol()) {
+        Symbol name = v1.asSymbol();
+        ExprNode* expr = analyzeExpr(p2->getCar(), source_map_->at(p2));
+        return allocator_->make<DefineNode>(position, name, expr);
+    } else if (isPair(v1)) {
+        throw AnalyzeError(position, "not implemented");
+    } else {
+        throw AnalyzeError(position, "invalid argument of 'define'");
+    }
 }
 
 }

@@ -44,10 +44,10 @@ std::string PairObject::toString() const {
             buffer.push_back(' ');
         buffer += obj->car_.toString();
 
-        if (cdr_ == Value::Nil)
+        if (obj->cdr_ == Value::Nil)
             break;
         if (!cdr_.isPointer() ||
-            dynamic_cast<const PairObject*>(cdr_.asPointer()) == nullptr) {
+            dynamic_cast<const PairObject*>(obj->cdr_.asPointer()) == nullptr) {
             buffer += " . ";
             buffer += obj->cdr_.toString();
             break;

@@ -9,30 +9,54 @@ Value Parser::parse() {
 }
 
 Value Parser::parseDatum() {
+    Value value = Value::Nil;
+
     switch (token_.getType()) {
     case TokenType::kTrue:
+        token_ = scanner_->getToken();
         return Value::True;
+
     case TokenType::kFalse:
+        token_ = scanner_->getToken();
         return Value::False;
+
     case TokenType::kInteger:
-        return Value::fromInteger(token_.getInteger());
+        value = Value::fromInteger(token_.getInteger());
+        token_ = scanner_->getToken();
+        return value;
+
     case TokenType::kReal:
-        return Value::fromPointer(
+        value = Value::fromPointer(
             allocator_->make<RealObject>(token_.getReal()));
+        token_ = scanner_->getToken();
+        return value;
+
     case TokenType::kCharacter:
-        return Value::fromCharacter(token_.getCharacter());
+        value = Value::fromCharacter(token_.getCharacter());
+        token_ = scanner_->getToken();
+        return value;
+
     case TokenType::kString:
-        return Value::fromPointer(
+        value = Value::fromPointer(
             allocator_->make<StringObject>(token_.getString()));
+        token_ = scanner_->getToken();
+        return value;
+
     case TokenType::kIdentifier:
-        return Value::fromSymbol(token_.getSymbol());
+        value = Value::fromSymbol(token_.getSymbol());
+        token_ = scanner_->getToken();
+        return value;
+
     case TokenType::kOpenParen:
         return parseList();
+
     case TokenType::kSharpOpenParen:
         return parseVector();
+
     case TokenType::kQuote: case TokenType::kBackQuote:
     case TokenType::kComma: case TokenType::kCommaAt:
         return parseAbbr();
+
     default:
         throw ParseError(token_.getPosition(), "unexpected token");
     }

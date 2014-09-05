@@ -35,15 +35,15 @@ public:
     }
 
     bool isInteger() const {
-        return (value_ & ~kMask) == kFlagInteger;
+        return (value_ & kMask) == kFlagInteger;
     }
 
     bool isSymbol() const {
-        return (value_ & ~kMask) == kFlagSymbol;
+        return (value_ & kMask) == kFlagSymbol;
     }
 
     bool isCharacter() const {
-        return (value_ & ~kMask) == kFlagCharacter;
+        return (value_ & kMask) == kFlagCharacter;
     }
 
     Object* asPointer() {
@@ -55,7 +55,7 @@ public:
     }
 
     int64_t asInteger() const {
-        return value_ >> kShift;
+        return static_cast<int64_t>(value_) >> kShift;
     }
 
     Symbol asSymbol() const {

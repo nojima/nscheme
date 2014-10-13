@@ -35,7 +35,7 @@ namespace nscheme {
 
 Node* Analyzer::analyze(Value datum) {
     Position dummy(symbol_table_->intern(""), 1, 1);
-    return analyzeExpr(datum, dummy);
+    return analyzeExprOrDefine(datum, dummy);
 }
 
 Node* Analyzer::analyzeExprOrDefine(Value value, const Position& position) {

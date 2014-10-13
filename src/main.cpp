@@ -7,6 +7,8 @@
 #include "symbol.hpp"
 #include "symbol_table.hpp"
 #include "value.hpp"
+#include "code.hpp"
+#include "inst.hpp"
 using namespace nscheme;
 
 int main() {
@@ -23,6 +25,18 @@ int main() {
         Analyzer analyzer(&symbol_table, &allocator, &source_map);
         Node* node = analyzer.analyze(value);
         std::printf("Expression: %s\n", node->toString().c_str());
+        std::puts("==== Inst ====");
+        Code code;
+        node->codegen(code);
+        code.main.push_back(new ReturnInst());
+        for (Inst* inst: code.main)
+            std::printf("%s\n", inst->toString().c_str());
+        for (Inst* inst: code.sub)
+            std::printf("%s\n", inst->toString().c_str());
+        for (Inst* inst: code.main)
+            delete inst;
+        for (Inst* inst: code.sub)
+            delete inst;
     } catch (const std::runtime_error& e) {
         std::fprintf(stderr, "%s\n", e.what());
         return 1;

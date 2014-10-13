@@ -3,7 +3,7 @@
 namespace nscheme {
 
 std::string LambdaNode::toString() const {
-    std::string buffer("(lambda ");
+    std::string buffer("<lambda ");
     if (variable_args_) {
         if (arg_names_.size() == 1) {
             buffer += arg_names_[0].toString();
@@ -41,7 +41,7 @@ std::string LambdaNode::toString() const {
         buffer.push_back(' ');
         buffer += node->toString();
     }
-    buffer.push_back(')');
+    buffer.push_back('>');
     return buffer;
 }
 

@@ -4,13 +4,13 @@
 
 #include "symbol.hpp"
 #include "value.hpp"
+#include "context.hpp"
 
 namespace nscheme {
 
 class Inst {
 public:
     virtual ~Inst() {}
-
     virtual std::string toString() const = 0;
 };
 

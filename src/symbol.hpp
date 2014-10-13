@@ -30,3 +30,12 @@ private:
 };
 
 }
+
+namespace std {
+    template <>
+    struct hash<nscheme::Symbol>: public std::unary_function<nscheme::Symbol, size_t> {
+        size_t operator()(const nscheme::Symbol& symbol) const {
+            return hash<std::string>()(symbol.toString());
+        }
+    };
+}

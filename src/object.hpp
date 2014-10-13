@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "value.hpp"
+#include "frame.hpp"
 
 namespace nscheme {
 
@@ -102,6 +103,36 @@ public:
 
 private:
     std::vector<Value> values_;
+};
+
+class LabelInst;
+
+class ClosureObject: public Object {
+public:
+    ClosureObject(LabelInst* label, Frame* frame,
+                  const std::vector<Symbol>& arg_names)
+        : label_(label), frame_(frame), arg_names_(arg_names) {}
+
+    LabelInst* getLabel() const noexcept {
+        return label_;
+    }
+
+    Frame* getFrame() const noexcept {
+        return frame_;
+    }
+
+    const std::vector<Symbol>& getArgNames() const noexcept {
+        return arg_names_;
+    }
+
+    std::string toString() const override {
+        return "<closure " + std::to_string((uintptr_t)label_) + ">";
+    }
+
+private:
+    LabelInst* label_;
+    Frame* frame_;
+    std::vector<Symbol> arg_names_;
 };
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <stdexcept>
 
 #include "symbol.hpp"
 #include "value.hpp"
@@ -12,15 +13,16 @@ class Inst {
 public:
     virtual ~Inst() {}
     virtual std::string toString() const = 0;
+    virtual void exec(Context* context) = 0;
 };
 
 class LabelInst: public Inst {
 public:
-    LabelInst** getLocation() const noexcept {
+    Inst** getLocation() const noexcept {
         return location_;
     }
 
-    void setLocation(LabelInst** location) {
+    void setLocation(Inst** location) {
         location_ = location;
     }
 
@@ -28,8 +30,10 @@ public:
         return "[" + std::to_string((uintptr_t)this) + "]";
     }
 
+    void exec(Context*) override;
+
 private:
-    LabelInst** location_ = nullptr;
+    Inst** location_ = nullptr;
 };
 
 class LoadVariableInst: public Inst {
@@ -39,6 +43,8 @@ public:
     std::string toString() const override {
         return "  load_variable " + name_.toString();
     }
+
+    void exec(Context* context) override;
 
 private:
     Symbol name_;
@@ -51,6 +57,8 @@ public:
     std::string toString() const override {
         return "  load_literal " + value_.toString();
     }
+
+    void exec(Context* context) override;
 
 private:
     Value value_;
@@ -70,6 +78,8 @@ public:
         return std::move(ret);
     }
 
+    void exec(Context* context) override;
+
 private:
     LabelInst* label_;
     std::vector<Symbol> args_;
@@ -83,6 +93,8 @@ public:
         return "  apply " + std::to_string(n_args_);
     }
 
+    void exec(Context* context) override;
+
 private:
     size_t n_args_;
 };
@@ -95,6 +107,8 @@ public:
         return "  assign " + name_.toString();
     }
 
+    void exec(Context* context) override;
+
 private:
     Symbol name_;
 };
@@ -104,6 +118,8 @@ public:
     std::string toString() const override {
         return "  return";
     }
+
+    void exec(Context* context) override;
 };
 
 class DiscardInst: public Inst {
@@ -111,6 +127,8 @@ public:
     std::string toString() const override {
         return "  discard";
     }
+
+    void exec(Context* context) override;
 };
 
 class BranchInst: public Inst {
@@ -122,9 +140,39 @@ public:
         return "  branch " + then_label_->toString() + " " + else_label_->toString();
     }
 
+    void exec(Context* context) override;
+
 private:
     LabelInst* then_label_;
     LabelInst* else_label_;
 };
+
+class BranchReturnInst: public Inst {
+public:
+    std::string toString() const override {
+        return "  branch_return";
+    }
+
+    void exec(Context* context) override;
+};
+
+class QuitInst: public Inst {
+public:
+    std::string toString() const override {
+        return "  quit";
+    }
+
+    void exec(Context* context) override;
+};
+
+struct NameError: public std::runtime_error {
+    NameError(const std::string& message): std::runtime_error(message) {}
+};
+
+struct TypeError: public std::runtime_error {
+    TypeError(const std::string& message): std::runtime_error(message) {}
+};
+
+struct Quit {};
 
 }   // namespace nscheme

@@ -30,7 +30,7 @@ private:
     int ch_;
 };
 
-struct ScanError: std::runtime_error {
+struct ScanError: public std::runtime_error {
     ScanError(const Position& position, const std::string& message)
         : std::runtime_error(position.toString() + ": " + message) {}
 };

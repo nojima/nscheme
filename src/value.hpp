@@ -31,7 +31,7 @@ public:
     }
 
     bool isPointer() const {
-        return (value_ & ~kMask) == 0 | value_ > kUndefined;
+        return (value_ & kMask) == 0 & value_ > kUndefined;
     }
 
     bool isInteger() const {
@@ -67,7 +67,7 @@ public:
     }
 
     bool asBoolean() const {
-        return (value_ & ~kFalse) == 0;
+        return !((value_ == kNil) | (value_ == kFalse));
     }
 
     std::string toString() const;

@@ -9,15 +9,6 @@ const Value Value::True(Value::kTrue);
 const Value Value::Undefined(Value::kUndefined);
 
 std::string Value::toString() const {
-    if (isInteger()) {
-        return std::to_string(asInteger());
-    }
-    if (isSymbol()) {
-        return asSymbol().toString();
-    }
-    if (isCharacter()) {
-        return std::string(1, asCharacter());
-    }
     if (value_ == kNil) {
         return "()";
     }
@@ -29,6 +20,15 @@ std::string Value::toString() const {
     }
     if (value_ == kUndefined) {
         return "<undef>";
+    }
+    if (isInteger()) {
+        return std::to_string(asInteger());
+    }
+    if (isSymbol()) {
+        return asSymbol().toString();
+    }
+    if (isCharacter()) {
+        return std::string(1, asCharacter());
     }
     return asPointer()->toString();
 }

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <functional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "value.hpp"
-#include "frame.hpp"
 
 namespace nscheme {
 
@@ -105,6 +106,36 @@ private:
     std::vector<Value> values_;
 };
 
+class Frame: public Object {
+public:
+    Frame(Frame* parent, const std::unordered_map<Symbol, Value>& variables)
+        : parent_(parent), variables_(variables) {}
+
+    const Frame* getParent() const {
+        return parent_;
+    }
+
+    Frame* getParent() {
+        return parent_;
+    }
+
+    const std::unordered_map<Symbol, Value>& getVariables() const {
+        return variables_;
+    }
+
+    std::unordered_map<Symbol, Value>& getVariables() {
+        return variables_;
+    }
+
+    std::string toString() const {
+        return "<frame>";
+    }
+
+private:
+    Frame* parent_;
+    std::unordered_map<Symbol, Value> variables_;
+};
+
 class LabelInst;
 
 class ClosureObject: public Object {
@@ -133,6 +164,26 @@ private:
     LabelInst* label_;
     Frame* frame_;
     std::vector<Symbol> arg_names_;
+};
+
+struct Context;
+
+class CFunctionObject: public Object {
+public:
+    CFunctionObject(const std::function<void (Context*, size_t)>& func, const std::string& name)
+        : func_(func), name_(name) {}
+
+    void call(Context* ctx, size_t n_args) {
+        func_(ctx, n_args);
+    }
+
+    std::string toString() const override {
+        return "<c_function " + name_ + ">";
+    }
+
+private:
+    std::function<void (Context*, size_t)> func_;
+    std::string name_;
 };
 
 }

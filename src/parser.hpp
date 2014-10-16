@@ -34,7 +34,7 @@ private:
     Token token_;
 };
 
-struct ParseError: std::runtime_error {
+struct ParseError: public std::runtime_error {
     ParseError(const Position& position, const std::string& message)
         : std::runtime_error(position.toString() + ": " + message) {}
 };

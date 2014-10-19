@@ -1,13 +1,15 @@
 #pragma once
 
+#include <vector>
 #include <string>
 #include <stdexcept>
 
 #include "symbol.hpp"
 #include "value.hpp"
-#include "context.hpp"
 
 namespace nscheme {
+
+struct Context;
 
 class Inst {
 public:

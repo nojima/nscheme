@@ -1,5 +1,6 @@
 #include "inst.hpp"
 #include "object.hpp"
+#include "context.hpp"
 
 namespace nscheme {
 
@@ -53,6 +54,16 @@ void ApplyInst::exec(Context* ctx) {
         if (auto cfunction = dynamic_cast<CFunctionObject*>(v.asPointer())) {
             cfunction->call(ctx, n_args_);
             ctx->ip++;
+            return;
+        }
+        if (auto continuation = dynamic_cast<ContinuationObject*>(v.asPointer())) {
+            std::vector<Value> value_stack = continuation->getValueStack();
+            value_stack.insert(value_stack.end(), ctx->value_stack.end() - n_args_,
+                               ctx->value_stack.end());
+            ctx->value_stack = std::move(value_stack);
+            ctx->control_stack = continuation->getControlStack();
+            ctx->frame_stack = continuation->getFrameStack();
+            ctx->ip = continuation->getInstrunctionPointer();
             return;
         }
     }

@@ -54,6 +54,19 @@ void eq(Context* ctx, size_t n_args) {
         ctx->value_stack.push_back(Value::False);
 }
 
+void callcc(Context* ctx, size_t n_args) {
+    if (n_args != 1)
+        throw std::runtime_error("call/cc: Invalid number of arguments.");
+    Value callable = ctx->value_stack.back();
+    ctx->value_stack.pop_back();
+
+    ContinuationObject* continuation = ctx->allocator->make<ContinuationObject>(
+        ctx->ip + 1, ctx->value_stack, ctx->control_stack, ctx->frame_stack);
+    ctx->value_stack.push_back(Value::fromPointer(continuation));
+    ctx->value_stack.push_back(callable);
+    ApplyInst(1).exec(ctx);
+}
+
 void run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
     Context ctx;
     ctx.ip = &code[0];
@@ -66,6 +79,13 @@ void run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tab
     variables.insert(std::make_pair(
         symbol_table->intern("eq?"),
         Value::fromPointer(allocator->make<CFunctionObject>(eq, "eq?"))));
+    auto callcc_f = allocator->make<CFunctionObject>(callcc, "call-with-current-continuation");
+    variables.insert(std::make_pair(
+        symbol_table->intern("call-with-current-continuation"),
+        Value::fromPointer(callcc_f)));
+    variables.insert(std::make_pair(
+        symbol_table->intern("call/cc"),
+        Value::fromPointer(callcc_f)));
     Frame* frame = allocator->make<Frame>(nullptr, variables);
     ctx.frame_stack.push_back(frame);
 

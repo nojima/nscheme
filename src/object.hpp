@@ -186,4 +186,42 @@ private:
     std::string name_;
 };
 
+class Inst;
+
+class ContinuationObject: public Object {
+public:
+    ContinuationObject(Inst** ip,
+                       const std::vector<Value>& value_stack,
+                       const std::vector<Inst**>& control_stack,
+                       const std::vector<Frame*>& frame_stack)
+        : ip_(ip), value_stack_(value_stack), control_stack_(control_stack)
+        , frame_stack_(frame_stack) {}
+
+    Inst** getInstrunctionPointer() {
+        return ip_;
+    }
+
+    std::vector<Value>& getValueStack() {
+        return value_stack_;
+    }
+
+    std::vector<Inst**>& getControlStack() {
+        return control_stack_;
+    }
+
+    std::vector<Frame*>& getFrameStack() {
+        return frame_stack_;
+    }
+
+    std::string toString() const override {
+        return "<continuation>";
+    }
+
+private:
+    Inst** ip_;
+    std::vector<Value> value_stack_;
+    std::vector<Inst**> control_stack_;
+    std::vector<Frame*> frame_stack_;
+};
+
 }

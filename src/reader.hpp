@@ -1,74 +1,42 @@
 #pragma once
 
-#include <cstdio>
-#include "position.hpp"
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
+#include "scanner.hpp"
+#include "symbol_table.hpp"
+#include "allocator.hpp"
+#include "value.hpp"
+#include "source_map.hpp"
 
 namespace nscheme {
 
-// ストリームや文字列から一文字ずつ文字を読み込むクラス
 class Reader {
 public:
-    virtual ~Reader() {}
+    Reader(Scanner* scanner, SymbolTable* symbol_table,
+           Allocator* allocator, SourceMap* source_map)
+        : scanner_(scanner), symbol_table_(symbol_table)
+        , allocator_(allocator), source_map_(source_map)
+        , token_(scanner_->getToken()) {}
 
-    // 次の一文字を返す。
-    // 終端に達した時は EOF を返す。
-    virtual int getChar() = 0;
-
-    // 現在の場所を返す。
-    virtual Position getPosition() const = 0;
-};
-
-// ファイルから文字を読み込むクラス
-class FileReader: public Reader {
-public:
-    FileReader(FILE* file, Symbol filename)
-        : file_(file), filename_(filename) {}
-
-    int getChar() override {
-        int ch = fgetc(file_);
-        if (ch == '\n') {
-            ++line_;
-            column_ = 1;
-        } else {
-            ++column_;
-        }
-        return ch;
-    }
-
-    Position getPosition() const override {
-        return Position(filename_, line_, column_);
-    }
+    Value read();
 
 private:
-    FILE* file_;
-    Symbol filename_;
-    size_t line_ = 1;
-    size_t column_ = 1;
+    Value readDatum();
+    Value readList();
+    Value readVector();
+    Value readAbbr();
+
+    Scanner* scanner_;
+    SymbolTable* symbol_table_;
+    Allocator* allocator_;
+    SourceMap* source_map_;
+    Token token_;
 };
 
-// 文字列から文字を読み込むクラス
-class StringReader: public Reader {
-public:
-    StringReader(const std::string& str, Symbol filename)
-        : str_(str), filename_(filename) {}
-
-    int getChar() override {
-        int ch = (index_ < str_.size()) ? str_[index_] : EOF;
-        if (ch == '\n') {
-            ++line_;
-            column_ = 1;
-        } else {
-            ++column_;
-        }
-        return ch;
-    }
-
-private:
-    std::string str_;
-    Symbol filename_;
-    size_t index_ = 0;
-    size_t line_ = 1;
-    size_t column_ = 1;
+struct ReadError: public std::runtime_error {
+    ReadError(const Position& position, const std::string& message)
+        : std::runtime_error(position.toString() + ": " + message) {}
 };
 
 }

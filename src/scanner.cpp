@@ -37,7 +37,7 @@ namespace nscheme {
 
 Token Scanner::getToken() {
     while (isspace(ch_)) {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
     }
 
     if (ch_ == EOF) {
@@ -53,17 +53,17 @@ Token Scanner::getToken() {
     }
 
     if (ch_ == '#') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         if (ch_ == 't') {
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
             return Token(TokenType::kTrue, getPosition());
         }
         if (ch_ == 'f') {
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
             return Token(TokenType::kFalse, getPosition());
         }
         if (ch_ == '(') {
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
             return Token(TokenType::kSharpOpenParen, getPosition());
         }
         if (ch_ == '\\') {
@@ -77,7 +77,7 @@ Token Scanner::getToken() {
 
     if (ch_ == '+' || ch_ == '-') {
         const char sign = ch_;
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         if (isdigit(ch_) || ch_ == '.') {
             return tokenizeNumber(sign == '-');
         } else {
@@ -87,14 +87,14 @@ Token Scanner::getToken() {
     }
 
     if (ch_ == '.') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         if (isdigit(ch_)) {
             return tokenizeNumber(false);
         } else {
             std::string buffer(".");
             while (isSubsequent(ch_)) {
                 buffer.push_back(ch_);
-                ch_ = reader_->getChar();
+                ch_ = stream_->getChar();
             }
             Symbol symbol = symbol_table_->intern(buffer);
             return Token::makeIdentifier(getPosition(), symbol);
@@ -102,29 +102,29 @@ Token Scanner::getToken() {
     }
 
     if (ch_ == '(') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         return Token(TokenType::kOpenParen, getPosition());
     }
 
     if (ch_ == ')') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         return Token(TokenType::kCloseParen, getPosition());
     }
 
     if (ch_ == '\'') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         return Token(TokenType::kQuote, getPosition());
     }
 
     if (ch_ == '`') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         return Token(TokenType::kBackQuote, getPosition());
     }
 
     if (ch_ == ',') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         if (ch_ == '@') {
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
             return Token(TokenType::kCommaAt, getPosition());
         } else {
             return Token(TokenType::kComma, getPosition());
@@ -132,7 +132,7 @@ Token Scanner::getToken() {
     }
 
     if (ch_ == '.') {
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         return Token(TokenType::kPeriod, getPosition());
     }
 
@@ -141,25 +141,25 @@ Token Scanner::getToken() {
 
 Token Scanner::tokenizeIdentifier() {
     std::string buffer(1, ch_);
-    ch_ = reader_->getChar();
+    ch_ = stream_->getChar();
     while (isSubsequent(ch_)) {
         buffer.push_back(ch_);
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
     }
     Symbol symbol = symbol_table_->intern(buffer);
     return Token::makeIdentifier(getPosition(), symbol);
 }
 
 Token Scanner::tokenizeCharacter() {
-    const int ch1 = reader_->getChar();
-    const int ch2 = reader_->getChar();
+    const int ch1 = stream_->getChar();
+    const int ch2 = stream_->getChar();
     if (isalpha(ch1) && isalpha(ch2)) {
         std::string buffer;
         buffer.push_back(ch1);
         buffer.push_back(ch2);
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
         while (isalpha(ch_))
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
         uint32_t character;
         if (buffer == "space")
             character = ' ';
@@ -175,11 +175,11 @@ Token Scanner::tokenizeCharacter() {
 }
 
 Token Scanner::tokenizeString() {
-    ch_ = reader_->getChar();
+    ch_ = stream_->getChar();
     std::string buffer;
     while (ch_ != EOF && ch_ != '"') {
         if (ch_ == '\\') {
-            ch_ = reader_->getChar();
+            ch_ = stream_->getChar();
             switch (ch_) {
             case '"': buffer.push_back('"');
             case '\\': buffer.push_back('\\');
@@ -191,11 +191,11 @@ Token Scanner::tokenizeString() {
         } else {
             buffer.push_back(ch_);
         }
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
     }
     if (ch_ != '"')
         throw ScanError(getPosition(), "unclosed string literal");
-    ch_ = reader_->getChar();
+    ch_ = stream_->getChar();
     return Token::makeString(getPosition(), buffer);
 }
 
@@ -206,7 +206,7 @@ Token Scanner::tokenizeNumber(bool negative) {
         buffer.push_back(ch_);
         if (ch_ == '.')
             ++n_period;
-        ch_ = reader_->getChar();
+        ch_ = stream_->getChar();
     }
     if (n_period > 1)
         throw ScanError(getPosition(), "too many period in a number");

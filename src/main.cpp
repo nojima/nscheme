@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <stdexcept>
-#include "analyzer.hpp"
 #include "parser.hpp"
 #include "reader.hpp"
+#include "stream.hpp"
 #include "scanner.hpp"
 #include "symbol.hpp"
 #include "symbol_table.hpp"
@@ -112,14 +112,14 @@ int main() {
     SourceMap source_map;
 
     try {
-        FileReader reader(stdin, filename);
-        Scanner scanner(&reader, &symbol_table);
-        Parser parser(&scanner, &symbol_table, &allocator, &source_map);
-        Value value = parser.parse();
+        FileStream stream(stdin, filename);
+        Scanner scanner(&stream, &symbol_table);
+        Reader reader(&scanner, &symbol_table, &allocator, &source_map);
+        Value value = reader.read();
         std::printf("     Datum: %s\n", value.toString().c_str());
 
-        Analyzer analyzer(&symbol_table, &allocator, &source_map);
-        Node* node = analyzer.analyze(value);
+        Parser parser(&symbol_table, &allocator, &source_map);
+        Node* node = parser.parse(value);
         std::printf("Expression: %s\n", node->toString().c_str());
 
         std::puts("==== Inst ====");

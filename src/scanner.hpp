@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include "reader.hpp"
+#include "stream.hpp"
 #include "symbol_table.hpp"
 #include "token.hpp"
 
@@ -9,15 +9,15 @@ namespace nscheme {
 
 class Scanner {
 public:
-    Scanner(Reader* reader, SymbolTable* symbol_table)
-        : reader_(reader), symbol_table_(symbol_table)
-        , ch_(reader->getChar()) {}
+    Scanner(Stream* stream, SymbolTable* symbol_table)
+        : stream_(stream), symbol_table_(symbol_table)
+        , ch_(stream->getChar()) {}
 
     Token getToken();
 
 private:
     Position getPosition() {
-        return reader_->getPosition();
+        return stream_->getPosition();
     }
 
     Token tokenizeIdentifier();
@@ -25,7 +25,7 @@ private:
     Token tokenizeString();
     Token tokenizeNumber(bool negative);
 
-    Reader* reader_;
+    Stream* stream_;
     SymbolTable* symbol_table_;
     int ch_;
 };

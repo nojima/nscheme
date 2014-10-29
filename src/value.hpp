@@ -30,6 +30,10 @@ public:
         return Value((character << kShift) | kFlagCharacter);
     }
 
+    static Value fromBoolean(bool b) {
+        return b ? Value::True : Value::False;
+    }
+
     bool isPointer() const {
         return (value_ & kMask) == 0 & value_ > kUndefined;
     }

@@ -39,6 +39,9 @@ void ApplyInst::exec(Context* ctx) {
     ctx->value_stack.pop_back();
     if (v.isPointer()) {
         if (auto closure = dynamic_cast<ClosureObject*>(v.asPointer())) {
+            if (closure->getArgNames().size() != n_args_)
+                throw std::runtime_error("invalid number of arguments");
+
             std::unordered_map<Symbol, Value> args;
             for (size_t i = 0; i < n_args_; ++i) {
                 Symbol name = closure->getArgNames()[n_args_ - i - 1];

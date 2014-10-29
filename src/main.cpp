@@ -1,15 +1,16 @@
 #include <cstdio>
 #include <stdexcept>
+#include "builtin.hpp"
+#include "code.hpp"
+#include "context.hpp"
+#include "inst.hpp"
 #include "parser.hpp"
 #include "reader.hpp"
-#include "stream.hpp"
 #include "scanner.hpp"
+#include "stream.hpp"
 #include "symbol.hpp"
 #include "symbol_table.hpp"
 #include "value.hpp"
-#include "code.hpp"
-#include "inst.hpp"
-#include "context.hpp"
 using namespace nscheme;
 
 std::vector<Inst*> codegen(Node* node) {
@@ -29,63 +30,13 @@ void resolveLabels(std::vector<Inst*>& code) {
     }
 }
 
-void plus(Context* ctx, size_t n_args) {
-    int64_t sum = 0;
-    for (size_t i = 0; i < n_args; ++i) {
-        Value v = ctx->value_stack.back();
-        ctx->value_stack.pop_back();
-        if (!v.isInteger())
-            throw TypeError("Argument of '+' must be an integer.");
-        sum += v.asInteger();
-    }
-    ctx->value_stack.push_back(Value::fromInteger(sum));
-}
-
-void eq(Context* ctx, size_t n_args) {
-    if (n_args != 2)
-        throw std::runtime_error("=: Invalid number of arguments.");
-    Value v1 = ctx->value_stack.back();
-    ctx->value_stack.pop_back();
-    Value v2 = ctx->value_stack.back();
-    ctx->value_stack.pop_back();
-    if (v1 == v2)
-        ctx->value_stack.push_back(Value::True);
-    else
-        ctx->value_stack.push_back(Value::False);
-}
-
-void callcc(Context* ctx, size_t n_args) {
-    if (n_args != 1)
-        throw std::runtime_error("call/cc: Invalid number of arguments.");
-    Value callable = ctx->value_stack.back();
-    ctx->value_stack.pop_back();
-
-    ContinuationObject* continuation = ctx->allocator->make<ContinuationObject>(
-        ctx->ip + 1, ctx->value_stack, ctx->control_stack, ctx->frame_stack);
-    ctx->value_stack.push_back(Value::fromPointer(continuation));
-    ctx->value_stack.push_back(callable);
-    ApplyInst(1).exec(ctx);
-}
-
-void run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
+int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
     Context ctx;
     ctx.ip = &code[0];
     ctx.allocator = allocator;
 
     std::unordered_map<Symbol, Value> variables;
-    variables.insert(std::make_pair(
-        symbol_table->intern("+"),
-        Value::fromPointer(allocator->make<CFunctionObject>(plus, "+"))));
-    variables.insert(std::make_pair(
-        symbol_table->intern("eq?"),
-        Value::fromPointer(allocator->make<CFunctionObject>(eq, "eq?"))));
-    auto callcc_f = allocator->make<CFunctionObject>(callcc, "call-with-current-continuation");
-    variables.insert(std::make_pair(
-        symbol_table->intern("call-with-current-continuation"),
-        Value::fromPointer(callcc_f)));
-    variables.insert(std::make_pair(
-        symbol_table->intern("call/cc"),
-        Value::fromPointer(callcc_f)));
+    registerBuiltinFunctions(&variables, allocator, symbol_table);
     Frame* frame = allocator->make<Frame>(nullptr, variables);
     ctx.frame_stack.push_back(frame);
 
@@ -100,9 +51,30 @@ void run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tab
             for (auto it = ctx.value_stack.begin(); it != ctx.value_stack.end(); ++it)
                 std::printf(" %s", it->toString().c_str());
             std::puts("");
+
+            std::printf("Scope: ");
+            for (auto f = ctx.frame_stack.back(); f != nullptr; f = f->getParent()) {
+                if (f->getParent() == nullptr) {
+                    std::printf("{global}");
+                } else {
+                    std::printf("{");
+                    for (auto it = f->getVariables().begin(); it != f->getVariables().end(); ++it) {
+                        if (it != f->getVariables().begin())
+                            std::printf(", ");
+                        std::printf("%s => %s", it->first.toString().c_str(), it->second.toString().c_str());
+                    }
+                    std::printf("}, ");
+                }
+            }
+            std::puts("");
         }
     } catch (Quit&) {
+    } catch (std::runtime_error& e) {
+        std::printf("[ERROR] %s\n", e.what());
+        return 1;
     }
+
+    return 0;
 }
 
 int main() {
@@ -128,13 +100,14 @@ int main() {
         for (Inst* inst: code)
             std::printf("%s\n", inst->toString().c_str());
 
-        run(code, &allocator, &symbol_table);
+        int rc = run(code, &allocator, &symbol_table);
 
         for (Inst* inst: code)
             delete inst;
+
+        return rc;
     } catch (const std::runtime_error& e) {
         std::fprintf(stderr, "%s\n", e.what());
         return 1;
     }
-    return 0;
 }

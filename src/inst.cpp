@@ -75,6 +75,22 @@ void ApplyInst::exec(Context* ctx) {
 
 void AssignInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
+    while (frame != nullptr) {
+        auto it = frame->getVariables().find(name_);
+        if (it != frame->getVariables().end()) {
+            it->second = ctx->value_stack.back();
+            ctx->value_stack.pop_back();
+            ctx->value_stack.push_back(Value::Nil);
+            ctx->ip++;
+            return;
+        }
+        frame = frame->getParent();
+    }
+    throw NameError("Undefined variable: " + name_.toString());
+}
+
+void DefineInst::exec(Context* ctx) {
+    Frame* frame = ctx->frame_stack.back();
     Value value = ctx->value_stack.back();
     ctx->value_stack.pop_back();
     frame->getVariables().insert(std::make_pair(name_, value));

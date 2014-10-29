@@ -101,6 +101,20 @@ private:
     size_t n_args_;
 };
 
+class DefineInst: public Inst {
+public:
+    DefineInst(Symbol name): name_(name) {}
+
+    std::string toString() const override {
+        return "  define " + name_.toString();
+    }
+
+    void exec(Context* context) override;
+
+private:
+    Symbol name_;
+};
+
 class AssignInst: public Inst {
 public:
     AssignInst(Symbol name): name_(name) {}

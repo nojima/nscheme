@@ -62,7 +62,7 @@ std::string ProcedureCallNode::toString() const {
 
 void DefineNode::codegen(Code& code) {
     expr_->codegen(code);
-    code.main.push_back(new AssignInst(name_));
+    code.main.push_back(new DefineInst(name_));
 }
 
 std::string DefineNode::toString() const {

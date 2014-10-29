@@ -36,6 +36,8 @@ inline bool isSubsequent(int ch) {
 namespace nscheme {
 
 Token Scanner::getToken() {
+retry:
+
     while (isspace(ch_)) {
         ch_ = stream_->getChar();
     }
@@ -134,6 +136,12 @@ Token Scanner::getToken() {
     if (ch_ == '.') {
         ch_ = stream_->getChar();
         return Token(TokenType::kPeriod, getPosition());
+    }
+
+    if (ch_ == ';') {
+        while (ch_ != EOF && ch_ != '\n')
+            ch_ = stream_->getChar();
+        goto retry;
     }
 
     throw ScanError(getPosition(), "unexpected character: " + std::string(1, ch_));

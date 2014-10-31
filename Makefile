@@ -1,12 +1,16 @@
+TARGET = nscheme
+
 CXX = clang++
 
+OVERALL_OPTIONS = -pipe
 LANGUAGE_OPTIONS = -std=c++11
 WARNING_OPTIONS = -Wall -Wextra -Weffc++ -Woverloaded-virtual -Werror -fcolor-diagnostics
 OPTIMIZATION_OPTIONS = -O3 -fno-omit-frame-pointer
 CODE_GENERATION_OPTIONS = -fPIC
 PREPROCESSOR_OPTIONS = -MMD -MP
 DEBUGGING_OPTIONS = -gdwarf-3 -fsanitize=address
-CXXFLAGS = $(LANGUAGE_OPTIONS) $(WARNING_OPTIONS) $(OPTIMIZATION_OPTIONS) $(CODE_GENERATION_OPTIONS) $(PREPROCESSOR_OPTIONS) $(DEBUGGING_OPTIONS)
+CXXFLAGS = $(OVERALL_OPTIONS) $(LANGUAGE_OPTIONS) $(WARNING_OPTIONS) $(OPTIMIZATION_OPTIONS) \
+           $(CODE_GENERATION_OPTIONS) $(PREPROCESSOR_OPTIONS) $(DEBUGGING_OPTIONS)
 
 LDFLAGS = -fsanitize=address
 LIBS = -lm
@@ -15,13 +19,15 @@ SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(patsubst src/%.cpp, obj/main/%.o, $(SOURCES))
 DEPENDS = $(patsubst %.o, %.d, $(OBJECTS))
 
-GTEST_DIR = /usr/src/gtest
 TEST_SOURCES = $(wildcard test/*.cpp)
 TEST_OBJECTS = $(patsubst test/%.cpp, obj/test/%.o, $(TEST_SOURCES))
 TEST_DEPENDS = $(patsubst %.o, %.d, $(TEST_OBJECTS))
 TESTS = $(patsubst test/%.cpp, obj/test/%.exe, $(TEST_SOURCES))
 
-TARGET = nscheme
+GTEST_DIR = vendor/gtest
+GTEST_OBJ_DIR = obj/gtest
+GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h $(GTEST_DIR)/include/gtest/internal/*.h
+GTEST_SOURCES = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 
 #==============================================================================
@@ -44,7 +50,7 @@ obj/main/%.o: src/%.cpp
 
 test: $(TESTS)
 
-obj/test/%.exe: obj/test/%.o $(filter-out obj/main/main.o, $(OBJECTS)) obj/gtest/gtest_main.a
+obj/test/%.exe: obj/test/%.o $(filter-out obj/main/main.o, $(OBJECTS)) $(GTEST_OBJ_DIR)/gtest_main.a
 	$(CXX) $(LDFLAGS) -lpthread $^ -o $@ $(LIBS)
 	$@
 
@@ -59,21 +65,18 @@ obj/test/%.o: test/%.cpp
 # Build rules for Google Test
 #==============================================================================
 
-GTEST_HEADERS = /usr/include/gtest/*.h /usr/include/gtest/internal/*.h
-GTEST_SOURCES = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
+$(GTEST_OBJ_DIR)/gtest-all.o: $(GTEST_SOURCES)
+	@mkdir -p $(GTEST_OBJ_DIR)
+	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -w -o $@ -c $(GTEST_DIR)/src/gtest-all.cc
 
-obj/gtest/gtest-all.o: $(GTEST_SOURCES)
-	@mkdir -p obj/gtest
-	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $(GTEST_DIR)/src/gtest-all.cc
+$(GTEST_OBJ_DIR)/gtest_main.o: $(GTEST_SOURCES)
+	@mkdir -p $(GTEST_OBJ_DIR)
+	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -w -o $@ -c $(GTEST_DIR)/src/gtest_main.cc
 
-obj/gtest/gtest_main.o: $(GTEST_SOURCES)
-	@mkdir -p obj/gtest
-	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $(GTEST_DIR)/src/gtest_main.cc
-
-obj/gtest/gtest.a: obj/gtest/gtest-all.o
+$(GTEST_OBJ_DIR)/gtest.a: $(GTEST_OBJ_DIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-obj/gtest/gtest_main.a: obj/gtest/gtest-all.o obj/gtest/gtest_main.o
+$(GTEST_OBJ_DIR)/gtest_main.a: $(GTEST_OBJ_DIR)/gtest-all.o $(GTEST_OBJ_DIR)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 

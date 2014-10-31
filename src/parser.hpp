@@ -6,7 +6,9 @@
 #include "source_map.hpp"
 #include "symbol_table.hpp"
 
+
 namespace nscheme {
+
 
 class Parser {
 public:
@@ -43,9 +45,11 @@ private:
     Symbol kwd_quote_;
 };
 
+
 struct ParseError: std::runtime_error {
     ParseError(const Position& position, const std::string& message)
         : std::runtime_error(position.toString() + ": " + message) {}
 };
 
-}
+
+}   // namespace nscheme

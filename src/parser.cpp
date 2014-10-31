@@ -1,8 +1,10 @@
 #include "parser.hpp"
 
+
 namespace {
 
 using namespace nscheme;
+
 
 bool isSelfEvaluating(Value value) {
     if (value.isInteger()) return true;
@@ -23,20 +25,25 @@ bool isSelfEvaluating(Value value) {
     return false;
 }
 
+
 inline bool isPair(Value value) {
     if (!value.isPointer())
         return false;
     return dynamic_cast<PairObject*>(value.asPointer());
 }
 
-}
+
+}   // namespace
+
 
 namespace nscheme {
+
 
 Node* Parser::parse(Value datum) {
     Position dummy(symbol_table_->intern(""), 1, 1);
     return parseExprOrDefine(datum, dummy);
 }
+
 
 Node* Parser::parseExprOrDefine(Value value, const Position& position) {
     if (isPair(value)) {
@@ -47,6 +54,7 @@ Node* Parser::parseExprOrDefine(Value value, const Position& position) {
     }
     return parseExpr(value, position);
 }
+
 
 ExprNode* Parser::parseExpr(Value value, const Position& position) {
     if (value.isSymbol()) {
@@ -77,6 +85,7 @@ ExprNode* Parser::parseExpr(Value value, const Position& position) {
     }
     return parseProcedureCall(p, source_map_->at(p));
 }
+
 
 ExprNode* Parser::parseLambda(Value value, const Position& position) {
     if (!isPair(value))
@@ -128,6 +137,7 @@ ExprNode* Parser::parseLambda(Value value, const Position& position) {
                                         std::move(local_names), std::move(nodes));
 }
 
+
 ExprNode* Parser::parseProcedureCall(PairObject* list, const Position& position) {
     ExprNode* callee = parseExpr(list->getCar(), position);
     std::vector<ExprNode*> args;
@@ -141,6 +151,7 @@ ExprNode* Parser::parseProcedureCall(PairObject* list, const Position& position)
     }
     return allocator_->make<ProcedureCallNode>(position, callee, args);
 }
+
 
 ExprNode* Parser::parseIf(Value value, const Position& position) {
     if (!isPair(value))
@@ -161,6 +172,7 @@ ExprNode* Parser::parseIf(Value value, const Position& position) {
     return allocator_->make<IfNode>(position, cond_node, then_node, else_node);
 }
 
+
 ExprNode* Parser::parseAssignment(Value value, const Position& position) {
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'set!'");
@@ -178,6 +190,7 @@ ExprNode* Parser::parseAssignment(Value value, const Position& position) {
     return allocator_->make<AssignmentNode>(position, name, expr);
 }
 
+
 ExprNode* Parser::parseQuote(Value value, const Position& position) {
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'quote'");
@@ -186,6 +199,7 @@ ExprNode* Parser::parseQuote(Value value, const Position& position) {
         throw ParseError(position, "invalid syntax of 'quote'");
     return allocator_->make<LiteralNode>(position, p->getCar());
 }
+
 
 Node* Parser::parseDefine(Value value, const Position& position) {
     if (!isPair(value))
@@ -209,4 +223,5 @@ Node* Parser::parseDefine(Value value, const Position& position) {
     }
 }
 
-}
+
+}   // namespace nscheme

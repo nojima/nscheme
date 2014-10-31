@@ -2,7 +2,9 @@
 
 #include <string>
 
+
 namespace nscheme {
+
 
 class Symbol {
 public:
@@ -29,13 +31,19 @@ private:
     const std::string* name_;
 };
 
-}
+
+}   // namespace nscheme
+
 
 namespace std {
-    template <>
-    struct hash<nscheme::Symbol>: public std::unary_function<nscheme::Symbol, size_t> {
-        size_t operator()(const nscheme::Symbol& symbol) const {
-            return hash<std::string>()(symbol.toString());
-        }
-    };
-}
+
+
+template <>
+struct hash<nscheme::Symbol>: public std::unary_function<nscheme::Symbol, size_t> {
+    size_t operator()(const nscheme::Symbol& symbol) const {
+        return hash<std::string>()(symbol.toString());
+    }
+};
+
+
+}   // namespace std

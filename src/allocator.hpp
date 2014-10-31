@@ -4,7 +4,9 @@
 #include <utility>
 #include "object.hpp"
 
+
 namespace nscheme {
+
 
 class Allocator {
 public:
@@ -25,4 +27,5 @@ private:
     std::forward_list<Object*> objects_;
 };
 
-}
+
+}   // namespace nscheme

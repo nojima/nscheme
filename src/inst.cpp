@@ -1,12 +1,15 @@
 #include "inst.hpp"
-#include "object.hpp"
 #include "context.hpp"
+#include "object.hpp"
+
 
 namespace nscheme {
+
 
 void LabelInst::exec(Context* ctx) {
     ctx->ip++;
 }
+
 
 void LoadVariableInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
@@ -22,10 +25,12 @@ void LoadVariableInst::exec(Context* ctx) {
     throw NameError("Undefined variable: " + name_.toString());
 }
 
+
 void LoadLiteralInst::exec(Context* ctx) {
     ctx->value_stack.push_back(value_);
     ctx->ip++;
 }
+
 
 void LoadClosureInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
@@ -33,6 +38,7 @@ void LoadClosureInst::exec(Context* ctx) {
     ctx->value_stack.push_back(Value::fromPointer(closure));
     ctx->ip++;
 }
+
 
 void ApplyInst::exec(Context* ctx) {
     Value v = ctx->value_stack.back();
@@ -73,6 +79,7 @@ void ApplyInst::exec(Context* ctx) {
     throw TypeError("This object cannot be called.");
 }
 
+
 void AssignInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
     while (frame != nullptr) {
@@ -89,6 +96,7 @@ void AssignInst::exec(Context* ctx) {
     throw NameError("Undefined variable: " + name_.toString());
 }
 
+
 void DefineInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
     Value value = ctx->value_stack.back();
@@ -98,16 +106,19 @@ void DefineInst::exec(Context* ctx) {
     ctx->ip++;
 }
 
+
 void ReturnInst::exec(Context* ctx) {
     ctx->frame_stack.pop_back();
     ctx->ip = ctx->control_stack.back();
     ctx->control_stack.pop_back();
 }
 
+
 void DiscardInst::exec(Context* ctx) {
     ctx->value_stack.pop_back();
     ctx->ip++;
 }
+
 
 void BranchInst::exec(Context* ctx) {
     Value value = ctx->value_stack.back();
@@ -120,13 +131,16 @@ void BranchInst::exec(Context* ctx) {
     }
 }
 
+
 void BranchReturnInst::exec(Context* ctx) {
     ctx->ip = ctx->control_stack.back();
     ctx->control_stack.pop_back();
 }
 
+
 void QuitInst::exec(Context*) {
     throw Quit();
 }
+
 
 }   // namespace nscheme

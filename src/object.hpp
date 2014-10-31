@@ -6,13 +6,20 @@
 #include <vector>
 #include "value.hpp"
 
+
 namespace nscheme {
+
+class Inst;
+class LabelInst;
+struct Context;
+
 
 class Object {
 public:
     virtual ~Object() {}
     virtual std::string toString() const = 0;
 };
+
 
 class StringObject: public Object {
 public:
@@ -25,6 +32,7 @@ private:
     std::string str_;
 };
 
+
 class RealObject: public Object {
 public:
     RealObject(double real): real_(real) {}
@@ -36,6 +44,7 @@ public:
 private:
     double real_;
 };
+
 
 class PairObject: public Object {
 public:
@@ -73,6 +82,7 @@ private:
     Value cdr_;
 };
 
+
 class VectorObject: public Object {
 public:
     VectorObject() {}
@@ -106,6 +116,7 @@ private:
     std::vector<Value> values_;
 };
 
+
 class Frame: public Object {
 public:
     Frame(Frame* parent, const std::unordered_map<Symbol, Value>& variables)
@@ -136,7 +147,6 @@ private:
     std::unordered_map<Symbol, Value> variables_;
 };
 
-class LabelInst;
 
 class ClosureObject: public Object {
 public:
@@ -166,7 +176,6 @@ private:
     std::vector<Symbol> arg_names_;
 };
 
-struct Context;
 
 class CFunctionObject: public Object {
 public:
@@ -186,7 +195,6 @@ private:
     std::string name_;
 };
 
-class Inst;
 
 class ContinuationObject: public Object {
 public:
@@ -224,4 +232,5 @@ private:
     std::vector<Frame*> frame_stack_;
 };
 
-}
+
+}   // namespace nscheme

@@ -3,10 +3,12 @@
 #include <vector>
 #include "allocator.hpp"
 
+
 namespace nscheme {
 
 class Inst;
 class Frame;
+
 
 struct Context {
     Inst** ip;
@@ -15,5 +17,6 @@ struct Context {
     std::vector<Frame*> frame_stack;
     Allocator* allocator;
 };
+
 
 }   // namespace nscheme

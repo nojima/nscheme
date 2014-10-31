@@ -3,7 +3,9 @@
 #include <string>
 #include <utility>
 
+
 namespace nscheme {
+
 
 enum class TokenType {
     kEof,
@@ -23,6 +25,7 @@ enum class TokenType {
     kCommaAt,
     kPeriod,
 };
+
 
 class Token {
 public:
@@ -97,4 +100,5 @@ private:
     std::string string_;
 };
 
-}
+
+}   // namespace nscheme

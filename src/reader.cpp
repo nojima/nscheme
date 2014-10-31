@@ -2,11 +2,14 @@
 #include <cassert>
 #include "object.hpp"
 
+
 namespace nscheme {
+
 
 Value Reader::read() {
     return readDatum();
 }
+
 
 Value Reader::readDatum() {
     Value value = Value::Nil;
@@ -62,6 +65,7 @@ Value Reader::readDatum() {
     }
 }
 
+
 Value Reader::readList() {
     Position position = token_.getPosition();
     token_ = scanner_->getToken();
@@ -93,6 +97,7 @@ Value Reader::readList() {
     return Value::fromPointer(first);
 }
 
+
 Value Reader::readVector() {
     Position position = token_.getPosition();
     token_ = scanner_->getToken();
@@ -107,6 +112,7 @@ Value Reader::readVector() {
     source_map_->insert(std::make_pair(obj, position));
     return Value::fromPointer(obj);
 }
+
 
 Value Reader::readAbbr() {
     Position position = token_.getPosition();
@@ -130,4 +136,5 @@ Value Reader::readAbbr() {
     return Value::fromPointer(p2);
 }
 
-}
+
+}   // namespace nscheme

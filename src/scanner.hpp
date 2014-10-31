@@ -5,7 +5,9 @@
 #include "symbol_table.hpp"
 #include "token.hpp"
 
+
 namespace nscheme {
+
 
 class Scanner {
 public:
@@ -30,9 +32,11 @@ private:
     int ch_;
 };
 
+
 struct ScanError: public std::runtime_error {
     ScanError(const Position& position, const std::string& message)
         : std::runtime_error(position.toString() + ": " + message) {}
 };
 
-}
+
+}   // namespace nscheme

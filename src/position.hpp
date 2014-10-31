@@ -3,7 +3,9 @@
 #include <string>
 #include "symbol.hpp"
 
+
 namespace nscheme {
+
 
 // ソースコード上の位置を表すクラス
 class Position {
@@ -33,4 +35,5 @@ private:
     size_t column_;
 };
 
-}
+
+}   // namespace nscheme

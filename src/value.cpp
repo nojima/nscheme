@@ -1,12 +1,15 @@
 #include "value.hpp"
 #include "object.hpp"
 
+
 namespace nscheme {
+
 
 const Value Value::Nil(Value::kNil);
 const Value Value::False(Value::kFalse);
 const Value Value::True(Value::kTrue);
 const Value Value::Undefined(Value::kUndefined);
+
 
 std::string Value::toString() const {
     if (value_ == kNil) {
@@ -33,4 +36,5 @@ std::string Value::toString() const {
     return asPointer()->toString();
 }
 
-}
+
+}   // namespace nscheme

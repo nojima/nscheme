@@ -13,6 +13,7 @@
 #include "value.hpp"
 using namespace nscheme;
 
+
 std::vector<Inst*> codegen(Node* node) {
     Code code;
     node->codegen(code);
@@ -22,6 +23,7 @@ std::vector<Inst*> codegen(Node* node) {
     return std::move(code.main);
 }
 
+
 void resolveLabels(std::vector<Inst*>& code) {
     for (size_t i = 0; i < code.size(); ++i) {
         if (auto label = dynamic_cast<LabelInst*>(code[i])) {
@@ -29,6 +31,7 @@ void resolveLabels(std::vector<Inst*>& code) {
         }
     }
 }
+
 
 int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
     Context ctx;
@@ -76,6 +79,7 @@ int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tabl
 
     return 0;
 }
+
 
 int main() {
     SymbolTable symbol_table;

@@ -3,9 +3,11 @@
 #include <string>
 #include "symbol.hpp"
 
+
 namespace nscheme {
 
 class Object;
+
 
 class Value {
 public:
@@ -100,4 +102,5 @@ private:
     uint64_t value_;
 };
 
-}
+
+}   // namespace nscheme

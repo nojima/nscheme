@@ -1,8 +1,10 @@
 #include "object.hpp"
-#include <cstdio>
 #include <cctype>
+#include <cstdio>
+
 
 namespace nscheme {
+
 
 std::string StringObject::toString() const {
     std::string buffer("\"");
@@ -36,6 +38,7 @@ std::string StringObject::toString() const {
     return buffer;
 }
 
+
 std::string PairObject::toString() const {
     std::string buffer("(");
     const PairObject* obj = this;
@@ -58,6 +61,7 @@ std::string PairObject::toString() const {
     return buffer;
 }
 
+
 std::string VectorObject::toString() const {
     std::string buffer("#(");
     for (size_t i = 0; i < values_.size(); ++i) {
@@ -69,4 +73,5 @@ std::string VectorObject::toString() const {
     return buffer;
 }
 
-}
+
+}   // namespace nscheme

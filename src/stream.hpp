@@ -3,7 +3,9 @@
 #include <cstdio>
 #include "position.hpp"
 
+
 namespace nscheme {
+
 
 // ストリームや文字列から一文字ずつ文字を読み込むクラス
 class Stream {
@@ -17,6 +19,7 @@ public:
     // 現在の場所を返す。
     virtual Position getPosition() const = 0;
 };
+
 
 // ファイルから文字を読み込むクラス
 class FileStream: public Stream {
@@ -46,6 +49,7 @@ private:
     size_t column_ = 1;
 };
 
+
 // 文字列から文字を読み込むクラス
 class StringStream: public Stream {
 public:
@@ -71,4 +75,5 @@ private:
     size_t column_ = 1;
 };
 
-}
+
+}   // namespace nscheme

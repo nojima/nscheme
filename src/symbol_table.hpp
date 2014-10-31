@@ -5,7 +5,9 @@
 #include <unordered_set>
 #include "symbol.hpp"
 
+
 namespace nscheme {
+
 
 class SymbolTable {
 public:
@@ -20,4 +22,5 @@ private:
     std::unordered_set<std::string> symbols_;
 };
 
-}
+
+}   // namespace nscheme

@@ -1,15 +1,16 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <stdexcept>
-
+#include <string>
+#include <vector>
 #include "symbol.hpp"
 #include "value.hpp"
+
 
 namespace nscheme {
 
 struct Context;
+
 
 class Inst {
 public:
@@ -17,6 +18,7 @@ public:
     virtual std::string toString() const = 0;
     virtual void exec(Context* context) = 0;
 };
+
 
 class LabelInst: public Inst {
 public:
@@ -37,6 +39,7 @@ public:
 private:
     Inst** location_ = nullptr;
 };
+
 
 class LoadVariableInst: public Inst {
 public:
@@ -66,6 +69,7 @@ private:
     Value value_;
 };
 
+
 class LoadClosureInst: public Inst {
 public:
     LoadClosureInst(LabelInst* label, const std::vector<Symbol>& args)
@@ -87,6 +91,7 @@ private:
     std::vector<Symbol> args_;
 };
 
+
 class ApplyInst: public Inst {
 public:
     ApplyInst(size_t n_args): n_args_(n_args) {}
@@ -100,6 +105,7 @@ public:
 private:
     size_t n_args_;
 };
+
 
 class DefineInst: public Inst {
 public:
@@ -115,6 +121,7 @@ private:
     Symbol name_;
 };
 
+
 class AssignInst: public Inst {
 public:
     AssignInst(Symbol name): name_(name) {}
@@ -129,6 +136,7 @@ private:
     Symbol name_;
 };
 
+
 class ReturnInst: public Inst {
 public:
     std::string toString() const override {
@@ -138,6 +146,7 @@ public:
     void exec(Context* context) override;
 };
 
+
 class DiscardInst: public Inst {
 public:
     std::string toString() const override {
@@ -146,6 +155,7 @@ public:
 
     void exec(Context* context) override;
 };
+
 
 class BranchInst: public Inst {
 public:
@@ -163,6 +173,7 @@ private:
     LabelInst* else_label_;
 };
 
+
 class BranchReturnInst: public Inst {
 public:
     std::string toString() const override {
@@ -171,6 +182,7 @@ public:
 
     void exec(Context* context) override;
 };
+
 
 class QuitInst: public Inst {
 public:
@@ -181,14 +193,18 @@ public:
     void exec(Context* context) override;
 };
 
+
 struct NameError: public std::runtime_error {
     NameError(const std::string& message): std::runtime_error(message) {}
 };
+
 
 struct TypeError: public std::runtime_error {
     TypeError(const std::string& message): std::runtime_error(message) {}
 };
 
+
 struct Quit {};
+
 
 }   // namespace nscheme

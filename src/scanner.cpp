@@ -2,7 +2,9 @@
 #include <cctype>
 #include <string>
 
+
 namespace {
+
 
 inline bool isSpecialInitial(int ch) {
     switch (ch) {
@@ -14,9 +16,11 @@ inline bool isSpecialInitial(int ch) {
     }
 }
 
+
 inline bool isInitial(int ch) {
     return isalpha(ch) || isSpecialInitial(ch);
 }
+
 
 inline bool isSpecialSubsequent(int ch) {
     switch (ch) {
@@ -27,13 +31,17 @@ inline bool isSpecialSubsequent(int ch) {
     }
 }
 
+
 inline bool isSubsequent(int ch) {
     return isInitial(ch) || isdigit(ch) || isSpecialSubsequent(ch);
 }
 
-}
+
+}   // namespace
+
 
 namespace nscheme {
+
 
 Token Scanner::getToken() {
 retry:
@@ -147,6 +155,7 @@ retry:
     throw ScanError(getPosition(), "unexpected character: " + std::string(1, ch_));
 }
 
+
 Token Scanner::tokenizeIdentifier() {
     std::string buffer(1, ch_);
     ch_ = stream_->getChar();
@@ -157,6 +166,7 @@ Token Scanner::tokenizeIdentifier() {
     Symbol symbol = symbol_table_->intern(buffer);
     return Token::makeIdentifier(getPosition(), symbol);
 }
+
 
 Token Scanner::tokenizeCharacter() {
     const int ch1 = stream_->getChar();
@@ -181,6 +191,7 @@ Token Scanner::tokenizeCharacter() {
         return Token::makeCharacter(getPosition(), ch1);
     }
 }
+
 
 Token Scanner::tokenizeString() {
     ch_ = stream_->getChar();
@@ -207,6 +218,7 @@ Token Scanner::tokenizeString() {
     return Token::makeString(getPosition(), buffer);
 }
 
+
 Token Scanner::tokenizeNumber(bool negative) {
     std::string buffer;
     size_t n_period = 0;
@@ -225,4 +237,5 @@ Token Scanner::tokenizeNumber(bool negative) {
         return Token::makeInteger(getPosition(), sign * std::stoll(buffer));
 }
 
-}
+
+}   // namespace nscheme

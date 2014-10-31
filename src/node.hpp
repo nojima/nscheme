@@ -1,13 +1,15 @@
 #pragma once
 
 #include <string>
+#include "object.hpp"
 #include "position.hpp"
 #include "value.hpp"
-#include "object.hpp"
+
 
 namespace nscheme {
 
 struct Code;
+
 
 class Node: public Object {
 public:
@@ -23,10 +25,12 @@ private:
     Position position_;
 };
 
+
 class ExprNode: public Node {
 public:
     ExprNode(const Position& position): Node(position) {}
 };
+
 
 class VariableNode: public ExprNode {
 public:
@@ -39,6 +43,7 @@ private:
     Symbol name_;
 };
 
+
 class LiteralNode: public ExprNode {
 public:
     explicit LiteralNode(const Position& position, Value value)
@@ -49,6 +54,7 @@ public:
 private:
     Value value_;
 };
+
 
 class ProcedureCallNode: public ExprNode {
 public:
@@ -62,6 +68,7 @@ private:
     ExprNode* callee_;
     std::vector<ExprNode*> operand_;
 };
+
 
 class DefineNode: public Node {
 public:
@@ -79,6 +86,7 @@ private:
     Symbol name_;
     ExprNode* expr_;
 };
+
 
 class LambdaNode: public ExprNode {
 public:
@@ -99,6 +107,7 @@ private:
     std::vector<Node*> nodes_;
 };
 
+
 class IfNode: public ExprNode {
 public:
     IfNode(const Position& position,
@@ -114,6 +123,7 @@ private:
     ExprNode* else_node_;
 };
 
+
 class AssignmentNode: public ExprNode {
 public:
     AssignmentNode(const Position& position, Symbol name, ExprNode* expr)
@@ -126,4 +136,5 @@ private:
     ExprNode* expr_;
 };
 
-}
+
+}   // namespace nscheme

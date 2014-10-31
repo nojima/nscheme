@@ -19,7 +19,7 @@ public:
     }
 
     static Value fromInteger(int64_t n) {
-        return Value((n << kShift) | kFlagInteger);
+        return Value(static_cast<uint64_t>(n << kShift) | kFlagInteger);
     }
 
     static Value fromSymbol(Symbol symbol) {
@@ -27,7 +27,7 @@ public:
     }
 
     static Value fromCharacter(uint32_t character) {
-        return Value((character << kShift) | kFlagCharacter);
+        return Value((static_cast<uint64_t>(character) << kShift) | kFlagCharacter);
     }
 
     static Value fromBoolean(bool b) {
@@ -66,8 +66,8 @@ public:
         return Symbol(reinterpret_cast<const std::string*>(value_ & ~kMask));
     }
 
-    int32_t asCharacter() const {
-        return value_ >> kShift;
+    uint32_t asCharacter() const {
+        return static_cast<uint32_t>(value_ >> kShift);
     }
 
     bool asBoolean() const {

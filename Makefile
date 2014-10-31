@@ -1,7 +1,7 @@
 CXX = clang++
 
 LANGUAGE_OPTIONS = -std=c++11
-WARNING_OPTIONS = -Wall -Wextra -Weffc++ -Woverloaded-virtual -fcolor-diagnostics
+WARNING_OPTIONS = -Wall -Wextra -Weffc++ -Woverloaded-virtual -Werror -fcolor-diagnostics
 OPTIMIZATION_OPTIONS = -O3 -fno-omit-frame-pointer
 CODE_GENERATION_OPTIONS = -fPIC
 PREPROCESSOR_OPTIONS = -MMD -MP

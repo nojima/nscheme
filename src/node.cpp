@@ -151,26 +151,19 @@ std::string LambdaNode::toString() const {
 
 
 void IfNode::codegen(Code& code) {
-    Code then_code;
-    then_node_->codegen(then_code);
-    then_code.main.push_back(new BranchReturnInst());
-
     LabelInst* then_label = new LabelInst;
-    code.sub.push_back(then_label);
-    code.sub.insert(code.sub.end(), then_code.main.begin(), then_code.main.end());
-    code.sub.insert(code.sub.end(), then_code.sub.begin(), then_code.sub.end());
-
-    Code else_code;
-    else_node_->codegen(else_code);
-    else_code.main.push_back(new BranchReturnInst());
-
-    LabelInst* else_label = new LabelInst;
-    code.sub.push_back(else_label);
-    code.sub.insert(code.sub.end(), else_code.main.begin(), else_code.main.end());
-    code.sub.insert(code.sub.end(), else_code.sub.begin(), else_code.sub.end());
+    LabelInst* end_label = new LabelInst;
 
     cond_node_->codegen(code);
-    code.main.push_back(new BranchInst(then_label, else_label));
+    code.main.push_back(new JumpIfInst(then_label));
+
+    else_node_->codegen(code);
+    code.main.push_back(new JumpInst(end_label));
+
+    code.main.push_back(then_label);
+    then_node_->codegen(code);
+
+    code.main.push_back(end_label);
 }
 
 

@@ -97,13 +97,21 @@ public:
     ApplyInst(size_t n_args): n_args_(n_args) {}
 
     std::string toString() const override {
-        return "  apply " + std::to_string(n_args_);
+        if (tail_)
+            return "  tail_apply " + std::to_string(n_args_);
+        else
+            return "  apply " + std::to_string(n_args_);
+    }
+
+    void setTail(bool tail) {
+        tail_ = tail;
     }
 
     void exec(Context* context) override;
 
 private:
     size_t n_args_;
+    bool tail_ = false;
 };
 
 
@@ -157,30 +165,49 @@ public:
 };
 
 
-class BranchInst: public Inst {
+class JumpInst: public Inst {
 public:
-    BranchInst(LabelInst* then_label, LabelInst* else_label)
-        : then_label_(then_label), else_label_(else_label) {}
+    JumpInst(LabelInst* label): label_(label) {}
+
+    LabelInst* getLabel() noexcept {
+        return label_;
+    }
+
+    const LabelInst* getLabel() const noexcept {
+        return label_;
+    }
 
     std::string toString() const override {
-        return "  branch " + then_label_->toString() + " " + else_label_->toString();
+        return "  jump " + label_->toString();
     }
 
     void exec(Context* context) override;
 
 private:
-    LabelInst* then_label_;
-    LabelInst* else_label_;
+    LabelInst* label_;
 };
 
 
-class BranchReturnInst: public Inst {
+class JumpIfInst: public Inst {
 public:
+    JumpIfInst(LabelInst* label): label_(label) {}
+
+    LabelInst* getLabel() noexcept {
+        return label_;
+    }
+
+    const LabelInst* getLabel() const noexcept {
+        return label_;
+    }
+
     std::string toString() const override {
-        return "  branch_return";
+        return "  jump_if " + label_->toString();
     }
 
     void exec(Context* context) override;
+
+private:
+    LabelInst* label_;
 };
 
 

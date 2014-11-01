@@ -33,6 +33,56 @@ void resolveLabels(std::vector<Inst*>& code) {
 }
 
 
+bool optimizeOnePass(std::vector<Inst*>& code) {
+    bool changed = false;
+    Inst** last = &code[0] + code.size();
+
+    for (size_t i = 0; i < code.size(); ++i) {
+        if (auto apply = dynamic_cast<ApplyInst*>(code[i])) {
+            for (size_t j = i + 1; j < code.size(); ++j) {
+                if (dynamic_cast<ReturnInst*>(code[j])) {
+                    apply->setTail(true);
+                    changed = true;
+                    break;
+                }
+                if (dynamic_cast<LabelInst*>(code[j]) == nullptr)
+                    break;
+            }
+        } else if (auto jump = dynamic_cast<JumpInst*>(code[i])) {
+            Inst** ip = jump->getLabel()->getLocation();
+            for ( ; ip != last; ip++) {
+                if (dynamic_cast<ReturnInst*>(*ip)) {
+                    delete code[i];
+                    code[i] = new ReturnInst;
+                    changed = true;
+                    break;
+                }
+                if (auto jump2 = dynamic_cast<JumpInst*>(*ip)) {
+                    delete code[i];
+                    code[i] = new JumpInst(jump2->getLabel());
+                    changed = true;
+                    break;
+                }
+                if (dynamic_cast<LabelInst*>(*ip) == nullptr)
+                    break;
+            }
+        }
+    }
+
+    return changed;
+}
+
+
+void optimize(std::vector<Inst*>& code) {
+    const int maxPass = 7;
+
+    for (int i = 0; i < maxPass; ++i) {
+        if (!optimizeOnePass(code))
+            return;
+    }
+}
+
+
 int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
     Context ctx;
     ctx.ip = &code[0];
@@ -101,6 +151,7 @@ int main() {
         std::puts("==== Inst ====");
         std::vector<Inst*> code = codegen(node);
         resolveLabels(code);
+        optimize(code);
         for (Inst* inst: code)
             std::printf("%s\n", inst->toString().c_str());
 

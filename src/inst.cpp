@@ -55,8 +55,13 @@ void ApplyInst::exec(Context* ctx) {
                 ctx->value_stack.pop_back();
             }
             Frame* frame = ctx->allocator->make<Frame>(closure->getFrame(), args);
-            ctx->control_stack.push_back(ctx->ip + 1);
-            ctx->frame_stack.push_back(frame);
+            if (tail_) {
+                ctx->frame_stack.pop_back();
+                ctx->frame_stack.push_back(frame);
+            } else {
+                ctx->control_stack.push_back(ctx->ip + 1);
+                ctx->frame_stack.push_back(frame);
+            }
             ctx->ip = closure->getLabel()->getLocation();
             return;
         }
@@ -120,21 +125,19 @@ void DiscardInst::exec(Context* ctx) {
 }
 
 
-void BranchInst::exec(Context* ctx) {
-    Value value = ctx->value_stack.back();
-    ctx->value_stack.pop_back();
-    ctx->control_stack.push_back(ctx->ip + 1);
-    if (value.asBoolean()) {
-        ctx->ip = then_label_->getLocation();
-    } else {
-        ctx->ip = else_label_->getLocation();
-    }
+void JumpInst::exec(Context* ctx) {
+    ctx->ip = label_->getLocation();
 }
 
 
-void BranchReturnInst::exec(Context* ctx) {
-    ctx->ip = ctx->control_stack.back();
-    ctx->control_stack.pop_back();
+void JumpIfInst::exec(Context* ctx) {
+    Value value = ctx->value_stack.back();
+    ctx->value_stack.pop_back();
+    if (value.asBoolean()) {
+        ctx->ip = label_->getLocation();
+    } else {
+        ctx->ip++;
+    }
 }
 
 

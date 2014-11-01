@@ -205,6 +205,12 @@ void registerBuiltinFunctions(std::unordered_map<Symbol, Value>* variables,
             return Value::fromBoolean(obj == Value::Nil);
         });
 
+    registerFunction1(variables, allocator, symbol_table, "print",
+        [](Context*, Value obj) {
+            std::printf("%s\n", obj.toString().c_str());
+            return Value::Nil;
+        });
+
     auto callcc_f = allocator->make<CFunctionObject>(callcc, "call-with-current-continuation");
     variables->insert(std::make_pair(
         symbol_table->intern("call-with-current-continuation"),

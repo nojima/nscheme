@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <stdexcept>
+#include "argparse.hpp"
 #include "builtin.hpp"
 #include "code.hpp"
 #include "context.hpp"
@@ -83,7 +84,37 @@ void optimize(std::vector<Inst*>& code) {
 }
 
 
-int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table) {
+void printInst(Context& ctx) {
+    std::puts("====================================================");
+    std::printf("Inst: %s\n", (*ctx.ip)->toString().c_str());
+}
+
+
+void printState(Context& ctx) {
+    std::printf("ValueStack:");
+    for (auto it = ctx.value_stack.begin(); it != ctx.value_stack.end(); ++it)
+        std::printf(" %s", it->toString().c_str());
+    std::puts("");
+
+    std::printf("Scope: ");
+    for (auto f = ctx.frame_stack.back(); f != nullptr; f = f->getParent()) {
+        if (f->getParent() == nullptr) {
+            std::printf("{global}");
+        } else {
+            std::printf("{");
+            for (auto it = f->getVariables().begin(); it != f->getVariables().end(); ++it) {
+                if (it != f->getVariables().begin())
+                    std::printf(", ");
+                std::printf("%s => %s", it->first.toString().c_str(), it->second.toString().c_str());
+            }
+            std::printf("}, ");
+        }
+    }
+    std::puts("");
+}
+
+
+int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table, bool trace) {
     Context ctx;
     ctx.ip = &code[0];
     ctx.allocator = allocator;
@@ -95,31 +126,11 @@ int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tabl
 
     try {
         for (;;) {
-            std::puts("====================================================");
-            std::printf("Inst: %s\n", (*ctx.ip)->toString().c_str());
+            if (trace) printInst(ctx);
 
             (*ctx.ip)->exec(&ctx);
 
-            std::printf("ValueStack:");
-            for (auto it = ctx.value_stack.begin(); it != ctx.value_stack.end(); ++it)
-                std::printf(" %s", it->toString().c_str());
-            std::puts("");
-
-            std::printf("Scope: ");
-            for (auto f = ctx.frame_stack.back(); f != nullptr; f = f->getParent()) {
-                if (f->getParent() == nullptr) {
-                    std::printf("{global}");
-                } else {
-                    std::printf("{");
-                    for (auto it = f->getVariables().begin(); it != f->getVariables().end(); ++it) {
-                        if (it != f->getVariables().begin())
-                            std::printf(", ");
-                        std::printf("%s => %s", it->first.toString().c_str(), it->second.toString().c_str());
-                    }
-                    std::printf("}, ");
-                }
-            }
-            std::puts("");
+            if (trace) printState(ctx);
         }
     } catch (Quit&) {
     } catch (std::runtime_error& e) {
@@ -131,7 +142,35 @@ int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tabl
 }
 
 
-int main() {
+void usage() {
+    puts("Usage: nscheme [--options]");
+    puts("Options:");
+    puts("  --help   show this message and exit");
+    puts("  --trace  show internal state of the interpreter");
+}
+
+
+int main(int argc, char** argv) {
+    bool trace = false;
+    ArgumentParser argparser;
+    argparser.addOption("trace", "t", "trace");
+    argparser.addOption("help", "h", "help");
+
+    try {
+        auto args = argparser.parse(argc, argv);
+        if (args.count("help")) {
+            usage();
+            return 1;
+        }
+        if (args.count("trace")) {
+            trace = true;
+        }
+    } catch (ArgumentParseError& e) {
+        std::printf("%s\n", e.what());
+        usage();
+        return 1;
+    }
+
     SymbolTable symbol_table;
     Symbol filename = symbol_table.intern("stdin");
     Allocator allocator;
@@ -142,20 +181,25 @@ int main() {
         Scanner scanner(&stream, &symbol_table);
         Reader reader(&scanner, &symbol_table, &allocator, &source_map);
         Value value = reader.read();
-        std::printf("     Datum: %s\n", value.toString().c_str());
+        if (trace)
+            std::printf("     Datum: %s\n", value.toString().c_str());
 
         Parser parser(&symbol_table, &allocator, &source_map);
         Node* node = parser.parse(value);
-        std::printf("Expression: %s\n", node->toString().c_str());
+        if (trace)
+            std::printf("Expression: %s\n", node->toString().c_str());
 
-        std::puts("==== Inst ====");
         std::vector<Inst*> code = codegen(node);
         resolveLabels(code);
         optimize(code);
-        for (Inst* inst: code)
-            std::printf("%s\n", inst->toString().c_str());
 
-        int rc = run(code, &allocator, &symbol_table);
+        if (trace) {
+            std::puts("==== Inst ====");
+            for (Inst* inst: code)
+                std::printf("%s\n", inst->toString().c_str());
+        }
+
+        int rc = run(code, &allocator, &symbol_table, trace);
 
         for (Inst* inst: code)
             delete inst;

@@ -17,7 +17,8 @@
     (lambda (ls)
       (fold-right (lambda (_ r) (+ r 1)) 0 ls)))
 
-  (length '(1 2 3 4 5 6 7))
+  (print (length '(1 2 3 4 5 6 7)))
 
-  (map (lambda (x) (- 100 x)) '(10 20 30))
+  (print (map (lambda (x) (- 100 x)) '(10 20 30)))
+
 ))

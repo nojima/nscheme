@@ -1,0 +1,6 @@
+((lambda ()
+
+  ; broken syntax
+  (define)
+
+))

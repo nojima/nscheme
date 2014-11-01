@@ -143,7 +143,7 @@ int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tabl
 
 
 void usage() {
-    puts("Usage: nscheme [--options]");
+    puts("Usage: nscheme [--help] [--trace] [FILE]");
     puts("Options:");
     puts("  --help   show this message and exit");
     puts("  --trace  show internal state of the interpreter");
@@ -152,9 +152,12 @@ void usage() {
 
 int main(int argc, char** argv) {
     bool trace = false;
+    std::string filename = "-";
+
     ArgumentParser argparser;
     argparser.addOption("trace", "t", "trace");
     argparser.addOption("help", "h", "help");
+    argparser.addArgument("filename");
 
     try {
         auto args = argparser.parse(argc, argv);
@@ -165,19 +168,30 @@ int main(int argc, char** argv) {
         if (args.count("trace")) {
             trace = true;
         }
+        if (args.count("filename")) {
+            filename = args["filename"];
+        }
     } catch (ArgumentParseError& e) {
-        std::printf("%s\n", e.what());
+        std::fprintf(stderr, "%s\n", e.what());
         usage();
         return 1;
     }
 
     SymbolTable symbol_table;
-    Symbol filename = symbol_table.intern("stdin");
     Allocator allocator;
     SourceMap source_map;
 
     try {
-        FileStream stream(stdin, filename);
+        FILE* file = stdin;
+        if (filename != "-") {
+            file = fopen(filename.c_str(), "r");
+            if (file == nullptr) {
+                fprintf(stderr, "Failed to open file: %s\n", filename.c_str());
+                return 1;
+            }
+        }
+
+        FileStream stream(file, symbol_table.intern(filename));
         Scanner scanner(&stream, &symbol_table);
         Reader reader(&scanner, &symbol_table, &allocator, &source_map);
         Value value = reader.read();

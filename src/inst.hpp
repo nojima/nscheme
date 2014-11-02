@@ -63,6 +63,10 @@ public:
         return "  load_literal " + value_.toString();
     }
 
+    Value getValue() const {
+        return value_;
+    }
+
     void exec(Context* context) override;
 
 private:

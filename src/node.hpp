@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include "object.hpp"
 #include "position.hpp"
 #include "value.hpp"
@@ -11,14 +12,16 @@ namespace nscheme {
 struct Code;
 
 
-class Node: public Object {
+class Node {
 public:
     Node(const Position& position): position_(position) {}
+    virtual ~Node() {}
 
     const Position& getPosition() const noexcept {
         return position_;
     }
 
+    virtual std::string toString() const = 0;
     virtual void codegen(Code& code) = 0;
 
 private:
@@ -58,22 +61,27 @@ private:
 
 class ProcedureCallNode: public ExprNode {
 public:
-    ProcedureCallNode(const Position& position, ExprNode* callee,
-                      const std::vector<ExprNode*>& operand)
-        : ExprNode(position), callee_(callee), operand_(operand) {}
+    ProcedureCallNode(const Position& position,
+                      std::unique_ptr<ExprNode> callee,
+                      std::vector<std::unique_ptr<ExprNode>>&& operand)
+        : ExprNode(position)
+        , callee_(std::move(callee))
+        , operand_(std::move(operand)) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
 private:
-    ExprNode* callee_;
-    std::vector<ExprNode*> operand_;
+    std::unique_ptr<ExprNode> callee_;
+    std::vector<std::unique_ptr<ExprNode>> operand_;
 };
 
 
 class DefineNode: public Node {
 public:
-    DefineNode(const Position& position, Symbol name, ExprNode* expr)
-        : Node(position), name_(name), expr_(expr) {}
+    DefineNode(const Position& position, Symbol name,
+               std::unique_ptr<ExprNode> expr)
+        : Node(position), name_(name)
+        , expr_(std::move(expr)) {}
 
     Symbol getName() const noexcept {
         return name_;
@@ -84,7 +92,7 @@ public:
 
 private:
     Symbol name_;
-    ExprNode* expr_;
+    std::unique_ptr<ExprNode> expr_;
 };
 
 
@@ -93,10 +101,10 @@ public:
     LambdaNode(const Position& position,
                const std::vector<Symbol>& arg_names, bool variable_args,
                const std::vector<Symbol>& local_names,
-               const std::vector<Node*>& nodes)
+               std::vector<std::unique_ptr<Node>>&& nodes)
         : ExprNode(position)
         , arg_names_(arg_names), variable_args_(variable_args)
-        , local_names_(local_names), nodes_(nodes) {}
+        , local_names_(local_names), nodes_(std::move(nodes)) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -104,36 +112,42 @@ private:
     std::vector<Symbol> arg_names_;
     bool variable_args_;
     std::vector<Symbol> local_names_;
-    std::vector<Node*> nodes_;
+    std::vector<std::unique_ptr<Node>> nodes_;
 };
 
 
 class IfNode: public ExprNode {
 public:
     IfNode(const Position& position,
-           ExprNode* cond_node, ExprNode* then_node, ExprNode* else_node)
-        : ExprNode(position), cond_node_(cond_node)
-        , then_node_(then_node), else_node_(else_node) {}
+           std::unique_ptr<ExprNode> cond_node,
+           std::unique_ptr<ExprNode> then_node,
+           std::unique_ptr<ExprNode> else_node)
+        : ExprNode(position)
+        , cond_node_(std::move(cond_node))
+        , then_node_(std::move(then_node))
+        , else_node_(std::move(else_node)) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
 private:
-    ExprNode* cond_node_;
-    ExprNode* then_node_;
-    ExprNode* else_node_;
+    std::unique_ptr<ExprNode> cond_node_;
+    std::unique_ptr<ExprNode> then_node_;
+    std::unique_ptr<ExprNode> else_node_;
 };
 
 
 class AssignmentNode: public ExprNode {
 public:
-    AssignmentNode(const Position& position, Symbol name, ExprNode* expr)
-        : ExprNode(position), name_(name), expr_(expr) {}
+    AssignmentNode(const Position& position, Symbol name,
+                   std::unique_ptr<ExprNode> expr)
+        : ExprNode(position), name_(name)
+        , expr_(std::move(expr)) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
 private:
     Symbol name_;
-    ExprNode* expr_;
+    std::unique_ptr<ExprNode> expr_;
 };
 
 

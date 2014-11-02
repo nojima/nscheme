@@ -37,6 +37,8 @@ void LoadClosureInst::exec(Context* ctx) {
     ClosureObject* closure = ctx->allocator->make<ClosureObject>(label_, frame, args_);
     ctx->value_stack.push_back(Value::fromPointer(closure));
     ctx->ip++;
+    if (ctx->allocator->needGc())
+        ctx->allocator->gc(ctx);
 }
 
 
@@ -63,6 +65,9 @@ void ApplyInst::exec(Context* ctx) {
                 ctx->frame_stack.push_back(frame);
             }
             ctx->ip = closure->getLabel()->getLocation();
+
+            if (ctx->allocator->needGc())
+                ctx->allocator->gc(ctx);
             return;
         }
         if (auto cfunction = dynamic_cast<CFunctionObject*>(v.asPointer())) {

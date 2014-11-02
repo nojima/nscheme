@@ -6,6 +6,17 @@
 namespace nscheme {
 
 
+void PairObject::mark() {
+    if (marked_)
+        return;
+    marked_ = true;
+    if (car_.isPointer())
+        car_.asPointer()->mark();
+    if (cdr_.isPointer())
+        cdr_.asPointer()->mark();
+}
+
+
 std::string StringObject::toString() const {
     std::string buffer("\"");
     for (char ch : str_) {
@@ -71,6 +82,56 @@ std::string VectorObject::toString() const {
     }
     buffer.push_back(')');
     return buffer;
+}
+
+
+void VectorObject::mark() {
+    if (marked_)
+        return;
+    marked_ = true;
+    for (Value v: values_) {
+        if (v.isPointer())
+            v.asPointer()->mark();
+    }
+}
+
+
+void Frame::mark() {
+    if (marked_)
+        return;
+    marked_ = true;
+    if (parent_)
+        parent_->mark();
+    for (auto pair: variables_) {
+        if (pair.second.isPointer())
+            pair.second.asPointer()->mark();
+    }
+}
+
+
+void ClosureObject::mark() {
+    if (marked_)
+        return;
+    marked_ = true;
+    frame_->mark();
+}
+
+
+void CFunctionObject::mark() {
+    marked_ = true;
+}
+
+void ContinuationObject::mark() {
+    if (marked_)
+        return;
+    marked_ = true;
+    for (Value v: value_stack_) {
+        if (v.isPointer())
+            v.asPointer()->mark();
+    }
+    for (Frame* f: frame_stack_) {
+        f->mark();
+    }
 }
 
 

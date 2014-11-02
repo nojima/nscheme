@@ -18,6 +18,19 @@ class Object {
 public:
     virtual ~Object() {}
     virtual std::string toString() const = 0;
+    virtual void mark() = 0;
+    virtual size_t size() const = 0;
+
+    bool isMarked() const {
+        return marked_;
+    }
+
+    void resetMark() {
+        marked_ = false;
+    }
+
+protected:
+    bool marked_ = false;
 };
 
 
@@ -27,6 +40,14 @@ public:
         : str_(str) {}
 
     std::string toString() const override;
+
+    void mark() override {
+        marked_ = true;
+    }
+
+    size_t size() const override {
+        return sizeof(*this);
+    }
 
 private:
     std::string str_;
@@ -39,6 +60,14 @@ public:
 
     std::string toString() const override {
         return std::to_string(real_);
+    }
+
+    void mark() override {
+        marked_ = true;
+    }
+
+    size_t size() const override {
+        return sizeof(*this);
     }
 
 private:
@@ -77,6 +106,12 @@ public:
 
     std::string toString() const override;
 
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
+    }
+
 private:
     Value car_;
     Value cdr_;
@@ -112,6 +147,12 @@ public:
 
     std::string toString() const override;
 
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
+    }
+
 private:
     std::vector<Value> values_;
 };
@@ -142,6 +183,12 @@ public:
         return "<frame>";
     }
 
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
+    }
+
 private:
     Frame* parent_;
     std::unordered_map<Symbol, Value> variables_;
@@ -170,6 +217,12 @@ public:
         return "<closure " + std::to_string((uintptr_t)label_) + ">";
     }
 
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
+    }
+
 private:
     LabelInst* label_;
     Frame* frame_;
@@ -179,7 +232,8 @@ private:
 
 class CFunctionObject: public Object {
 public:
-    CFunctionObject(const std::function<void (Context*, size_t)>& func, const std::string& name)
+    CFunctionObject(const std::function<void (Context*, size_t)>& func,
+                    const std::string& name)
         : func_(func), name_(name) {}
 
     void call(Context* ctx, size_t n_args) {
@@ -188,6 +242,12 @@ public:
 
     std::string toString() const override {
         return "<c_function " + name_ + ">";
+    }
+
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
     }
 
 private:
@@ -223,6 +283,12 @@ public:
 
     std::string toString() const override {
         return "<continuation>";
+    }
+
+    void mark() override;
+
+    size_t size() const override {
+        return sizeof(*this);
     }
 
 private:

@@ -7,12 +7,13 @@
 
 namespace nscheme {
 
+struct Context;
+
 
 class Allocator {
 public:
-    // TODO: implement GC
     ~Allocator() {
-        for (Object* p : objects_)
+        for (Object* p: objects_)
             delete p;
     }
 
@@ -20,11 +21,20 @@ public:
     T* make(Args&& ...args) {
         T* ptr = new T(std::forward<Args>(args)...);
         objects_.push_front(ptr);
+        size_ += sizeof(T);
         return ptr;
     }
 
+    bool needGc() const {
+        return size_ > limit_;
+    }
+
+    void gc(Context* ctx);
+
 private:
     std::forward_list<Object*> objects_;
+    size_t size_ = 0;
+    size_t limit_ = 1024;
 };
 
 

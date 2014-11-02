@@ -118,6 +118,10 @@ int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_tabl
     Context ctx;
     ctx.ip = &code[0];
     ctx.allocator = allocator;
+    for (Inst* inst: code) {
+        if (auto literal = dynamic_cast<LoadLiteralInst*>(inst))
+            ctx.literals.push_back(literal->getValue());
+    }
 
     std::unordered_map<Symbol, Value> variables;
     registerBuiltinFunctions(&variables, allocator, symbol_table);
@@ -198,12 +202,12 @@ int main(int argc, char** argv) {
         if (trace)
             std::printf("     Datum: %s\n", value.toString().c_str());
 
-        Parser parser(&symbol_table, &allocator, &source_map);
-        Node* node = parser.parse(value);
+        Parser parser(&symbol_table, &source_map);
+        std::unique_ptr<Node> node(parser.parse(value));
         if (trace)
             std::printf("Expression: %s\n", node->toString().c_str());
 
-        std::vector<Inst*> code = codegen(node);
+        std::vector<Inst*> code = codegen(node.get());
         resolveLabels(code);
         optimize(code);
 

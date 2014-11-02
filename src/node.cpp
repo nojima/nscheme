@@ -53,7 +53,7 @@ std::string LiteralNode::toString() const {
 
 
 void ProcedureCallNode::codegen(Code& code) {
-    for (ExprNode* node: operand_)
+    for (auto& node: operand_)
         node->codegen(code);
     callee_->codegen(code);
     code.main.push_back(new ApplyInst(operand_.size()));
@@ -63,7 +63,7 @@ void ProcedureCallNode::codegen(Code& code) {
 std::string ProcedureCallNode::toString() const {
     std::string buffer("{");
     buffer += callee_->toString();
-    for (Node* p : operand_) {
+    for (auto& p: operand_) {
         buffer.push_back(' ');
         buffer += p->toString();
     }
@@ -141,7 +141,7 @@ std::string LambdaNode::toString() const {
         buffer.push_back(']');
     }
     */
-    for (Node* node : nodes_) {
+    for (auto& node: nodes_) {
         buffer.push_back(' ');
         buffer += node->toString();
     }

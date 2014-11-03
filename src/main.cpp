@@ -114,14 +114,15 @@ void printState(Context& ctx) {
 }
 
 
-int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table, bool trace) {
+int run(std::vector<Inst*>& code, Allocator* allocator,
+        SymbolTable* symbol_table,
+        std::unordered_map<Symbol, Value>* global_variables,
+        bool trace) {
     Context ctx;
     ctx.ip = &code[0];
     ctx.allocator = allocator;
 
-    std::unordered_map<Symbol, Value> variables;
-    registerBuiltinFunctions(&variables, allocator, symbol_table);
-    Frame* frame = allocator->make<Frame>(nullptr, variables);
+    Frame* frame = allocator->make<Frame>(nullptr, global_variables);
     ctx.frame_stack.push_back(frame);
 
     try {
@@ -196,7 +197,15 @@ int main(int argc, char** argv) {
         Reader reader(&scanner, &symbol_table, &allocator, &source_map);
         Value value = reader.read();
         if (trace)
-            std::printf("     Datum: %s\n", value.toString().c_str());
+            std::printf("Datum: %s\n", value.toString().c_str());
+
+        std::unordered_map<Symbol, Value> global_variables;
+        registerBuiltinFunctions(&global_variables, &allocator, &symbol_table);
+
+        std::vector<Symbol> global_names;
+        global_names.reserve(global_variables.size());
+        for (auto it: global_variables)
+            global_names.push_back(it.first);
 
         Parser parser(&symbol_table, &allocator, &source_map);
         Node* node = parser.parse(value);
@@ -213,7 +222,7 @@ int main(int argc, char** argv) {
                 std::printf("%s\n", inst->toString().c_str());
         }
 
-        int rc = run(code, &allocator, &symbol_table, trace);
+        int rc = run(code, &allocator, &symbol_table, &global_variables, trace);
 
         for (Inst* inst: code)
             delete inst;

@@ -41,6 +41,8 @@ public:
 
 private:
     Symbol name_;
+    size_t frame_index;
+    size_t variable_index;
 };
 
 

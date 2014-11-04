@@ -102,9 +102,9 @@ void Frame::mark() {
     marked_ = true;
     if (parent_)
         parent_->mark();
-    for (auto pair: variables_) {
-        if (pair.second.isPointer())
-            pair.second.asPointer()->mark();
+    for (auto v: variables_) {
+        if (v.isPointer())
+            v.asPointer()->mark();
     }
 }
 

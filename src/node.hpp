@@ -35,15 +35,30 @@ public:
 };
 
 
-class VariableNode: public ExprNode {
+class NamedVariableNode: public ExprNode {
 public:
-    VariableNode(const Position& position, Symbol name)
+    NamedVariableNode(const Position& position, Symbol name)
         : ExprNode(position), name_(name) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
 private:
     Symbol name_;
+};
+
+
+class IndexedVariableNode: public ExprNode {
+public:
+    IndexedVariableNode(const Position& position,
+                        size_t frame_index, size_t variable_index)
+        : ExprNode(position)
+        , frame_index_(frame_index), variable_index_(variable_index) {}
+    std::string toString() const override;
+    void codegen(Code& code) override;
+
+private:
+    size_t frame_index_;
+    size_t variable_index_;
 };
 
 
@@ -78,13 +93,27 @@ private:
 
 class DefineNode: public Node {
 public:
-    DefineNode(const Position& position, Symbol name,
-               std::unique_ptr<ExprNode> expr)
-        : Node(position), name_(name)
-        , expr_(std::move(expr)) {}
+    DefineNode(const Position& position, Symbol name, size_t index,
+               Value unparsed_expr, const Position& expr_position)
+        : Node(position), name_(name), index_(index)
+        , unparsed_expr_(unparsed_expr)
+        , expr_position_(expr_position)
+        {}
 
     Symbol getName() const noexcept {
         return name_;
+    }
+
+    Value getUnparsedExpr() const noexcept {
+        return unparsed_expr_;
+    }
+
+    const Position& getUnparsedExprPosition() const noexcept {
+        return expr_position_;
+    }
+
+    void setExpr(std::unique_ptr<ExprNode>&& expr) {
+        expr_ = std::move(expr);
     }
 
     std::string toString() const override;
@@ -92,26 +121,32 @@ public:
 
 private:
     Symbol name_;
+    size_t index_;
     std::unique_ptr<ExprNode> expr_;
+    Value unparsed_expr_;
+    Position expr_position_;
 };
 
 
 class LambdaNode: public ExprNode {
 public:
     LambdaNode(const Position& position,
-               const std::vector<Symbol>& arg_names, bool variable_args,
-               const std::vector<Symbol>& local_names,
+               const std::vector<Symbol>& arg_names,
+               bool variable_args,
+               size_t frame_size,
                std::vector<std::unique_ptr<Node>>&& nodes)
         : ExprNode(position)
-        , arg_names_(arg_names), variable_args_(variable_args)
-        , local_names_(local_names), nodes_(std::move(nodes)) {}
+        , arg_names_(arg_names)
+        , variable_args_(variable_args)
+        , frame_size_(frame_size)
+        , nodes_(std::move(nodes)) {}
     std::string toString() const override;
     void codegen(Code& code) override;
 
 private:
     std::vector<Symbol> arg_names_;
     bool variable_args_;
-    std::vector<Symbol> local_names_;
+    size_t frame_size_;
     std::vector<std::unique_ptr<Node>> nodes_;
 };
 
@@ -136,10 +171,10 @@ private:
 };
 
 
-class AssignmentNode: public ExprNode {
+class NamedAssignmentNode: public ExprNode {
 public:
-    AssignmentNode(const Position& position, Symbol name,
-                   std::unique_ptr<ExprNode> expr)
+    NamedAssignmentNode(const Position& position, Symbol name,
+                       std::unique_ptr<ExprNode> expr)
         : ExprNode(position), name_(name)
         , expr_(std::move(expr)) {}
     std::string toString() const override;
@@ -147,6 +182,26 @@ public:
 
 private:
     Symbol name_;
+    std::unique_ptr<ExprNode> expr_;
+};
+
+
+class IndexedAssignmentNode: public ExprNode {
+public:
+    IndexedAssignmentNode(const Position& position,
+                          size_t frame_index,
+                          size_t variable_index,
+                          std::unique_ptr<ExprNode> expr)
+        : ExprNode(position)
+        , frame_index_(frame_index)
+        , variable_index_(variable_index)
+        , expr_(std::move(expr)) {}
+    std::string toString() const override;
+    void codegen(Code& code) override;
+
+private:
+    size_t frame_index_;
+    size_t variable_index_;
     std::unique_ptr<ExprNode> expr_;
 };
 

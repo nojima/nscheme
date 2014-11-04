@@ -29,13 +29,24 @@ bool isSelfEvaluating(Value value) {
 namespace nscheme {
 
 
-void VariableNode::codegen(Code& code) {
-    code.main.push_back(new LoadVariableInst(name_));
+void NamedVariableNode::codegen(Code& code) {
+    code.main.push_back(new LoadNamedVariableInst(name_));
 }
 
 
-std::string VariableNode::toString() const {
+std::string NamedVariableNode::toString() const {
     return name_.toString();
+}
+
+
+void IndexedVariableNode::codegen(Code& code) {
+    code.main.push_back(new LoadIndexedVariableInst(frame_index_, variable_index_));
+}
+
+
+std::string IndexedVariableNode::toString() const {
+    return "V[" + std::to_string(frame_index_) + ", " +
+           std::to_string(variable_index_) + "]";
 }
 
 
@@ -74,7 +85,7 @@ std::string ProcedureCallNode::toString() const {
 
 void DefineNode::codegen(Code& code) {
     expr_->codegen(code);
-    code.main.push_back(new DefineInst(name_));
+    code.main.push_back(new IndexedAssignInst(0, index_));
 }
 
 
@@ -102,7 +113,7 @@ void LambdaNode::codegen(Code& code) {
     code.sub.insert(code.sub.end(), subcode.main.begin(), subcode.main.end());
     code.sub.insert(code.sub.end(), subcode.sub.begin(), subcode.sub.end());
 
-    code.main.push_back(new LoadClosureInst(label, arg_names_));
+    code.main.push_back(new LoadClosureInst(label, arg_names_.size(), frame_size_));
 }
 
 
@@ -179,16 +190,33 @@ std::string IfNode::toString() const {
 }
 
 
-void AssignmentNode::codegen(Code& code) {
+void NamedAssignmentNode::codegen(Code& code) {
     expr_->codegen(code);
-    code.main.push_back(new AssignInst(name_));
+    code.main.push_back(new NamedAssignInst(name_));
 }
 
 
-std::string AssignmentNode::toString() const {
+std::string NamedAssignmentNode::toString() const {
     std::string buffer("<set! ");
     buffer += name_.toString();
     buffer.push_back(' ');
+    buffer += expr_->toString();
+    buffer.push_back('>');
+    return buffer;
+}
+
+
+void IndexedAssignmentNode::codegen(Code& code) {
+    expr_->codegen(code);
+    code.main.push_back(new IndexedAssignInst(frame_index_, variable_index_));
+}
+
+
+std::string IndexedAssignmentNode::toString() const {
+    std::string buffer("<set! ");
+    buffer += std::to_string(frame_index_);
+    buffer.push_back(' ');
+    buffer += std::to_string(variable_index_);
     buffer += expr_->toString();
     buffer.push_back('>');
     return buffer;

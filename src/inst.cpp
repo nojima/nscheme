@@ -11,18 +11,24 @@ void LabelInst::exec(Context* ctx) {
 }
 
 
-void LoadVariableInst::exec(Context* ctx) {
-    Frame* frame = ctx->frame_stack.back();
-    while (frame != nullptr) {
-        auto it = frame->getVariables().find(name_);
-        if (it != frame->getVariables().end()) {
-            ctx->value_stack.push_back(it->second);
-            ctx->ip++;
-            return;
-        }
-        frame = frame->getParent();
+void LoadNamedVariableInst::exec(Context* ctx) {
+    auto it = ctx->named_variables.find(name_);
+    if (it != ctx->named_variables.end()) {
+        ctx->value_stack.push_back(it->second);
+        ctx->ip++;
+        return;
     }
     throw NameError("Undefined variable: " + name_.toString());
+}
+
+
+void LoadIndexedVariableInst::exec(Context* ctx) {
+    Frame* frame = ctx->frame_stack.back();
+    for (size_t i = 0; i < frame_index_; ++i)
+        frame = frame->getParent();
+    Value v = frame->getVariables()[variable_index_];
+    ctx->value_stack.push_back(v);
+    ctx->ip++;
 }
 
 
@@ -34,7 +40,7 @@ void LoadLiteralInst::exec(Context* ctx) {
 
 void LoadClosureInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
-    ClosureObject* closure = ctx->allocator->make<ClosureObject>(label_, frame, args_);
+    ClosureObject* closure = ctx->allocator->make<ClosureObject>(label_, frame, arg_size_, frame_size_);
     ctx->value_stack.push_back(Value::fromPointer(closure));
     ctx->ip++;
     if (ctx->allocator->needGc())
@@ -47,13 +53,12 @@ void ApplyInst::exec(Context* ctx) {
     ctx->value_stack.pop_back();
     if (v.isPointer()) {
         if (auto closure = dynamic_cast<ClosureObject*>(v.asPointer())) {
-            if (closure->getArgNames().size() != n_args_)
+            if (closure->getArgSize() != n_args_)
                 throw std::runtime_error("invalid number of arguments");
 
-            std::unordered_map<Symbol, Value> args;
+            std::vector<Value> args(closure->getFrameSize(), Value::Undefined);
             for (size_t i = 0; i < n_args_; ++i) {
-                Symbol name = closure->getArgNames()[n_args_ - i - 1];
-                args.insert(std::make_pair(name, ctx->value_stack.back()));
+                args[n_args_ - i - 1] = ctx->value_stack.back();
                 ctx->value_stack.pop_back();
             }
             Frame* frame = ctx->allocator->make<Frame>(closure->getFrame(), args);
@@ -90,28 +95,25 @@ void ApplyInst::exec(Context* ctx) {
 }
 
 
-void AssignInst::exec(Context* ctx) {
-    Frame* frame = ctx->frame_stack.back();
-    while (frame != nullptr) {
-        auto it = frame->getVariables().find(name_);
-        if (it != frame->getVariables().end()) {
-            it->second = ctx->value_stack.back();
-            ctx->value_stack.pop_back();
-            ctx->value_stack.push_back(Value::Nil);
-            ctx->ip++;
-            return;
-        }
-        frame = frame->getParent();
+void NamedAssignInst::exec(Context* ctx) {
+    auto it = ctx->named_variables.find(name_);
+    if (it != ctx->named_variables.end()) {
+        it->second = ctx->value_stack.back();
+        ctx->value_stack.pop_back();
+        ctx->value_stack.push_back(Value::Nil);
+        ctx->ip++;
+        return;
     }
     throw NameError("Undefined variable: " + name_.toString());
 }
 
 
-void DefineInst::exec(Context* ctx) {
+void IndexedAssignInst::exec(Context* ctx) {
     Frame* frame = ctx->frame_stack.back();
-    Value value = ctx->value_stack.back();
+    for (size_t i = 0; i < frame_index_; ++i)
+        frame = frame->getParent();
+    frame->getVariables()[variable_index_] = ctx->value_stack.back();
     ctx->value_stack.pop_back();
-    frame->getVariables().insert(std::make_pair(name_, value));
     ctx->value_stack.push_back(Value::Nil);
     ctx->ip++;
 }

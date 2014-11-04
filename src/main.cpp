@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <stdexcept>
 #include "argparse.hpp"
@@ -102,10 +103,11 @@ void printState(Context& ctx) {
             std::printf("{global}");
         } else {
             std::printf("{");
-            for (auto it = f->getVariables().begin(); it != f->getVariables().end(); ++it) {
-                if (it != f->getVariables().begin())
+            auto& variables = f->getVariables();
+            for (size_t i = 0; i < variables.size(); ++i) {
+                if (i != 0)
                     std::printf(", ");
-                std::printf("%s => %s", it->first.toString().c_str(), it->second.toString().c_str());
+                std::printf("%zd: %s", i, variables[i].toString().c_str());
             }
             std::printf("}, ");
         }
@@ -114,19 +116,41 @@ void printState(Context& ctx) {
 }
 
 
-int run(std::vector<Inst*>& code, Allocator* allocator, SymbolTable* symbol_table, bool trace) {
+Context createContext(std::vector<Inst*>& code, Allocator* allocator,
+                      std::unordered_map<Symbol, Value>& global_variables) {
     Context ctx;
+
     ctx.ip = &code[0];
     ctx.allocator = allocator;
     for (Inst* inst: code) {
         if (auto literal = dynamic_cast<LoadLiteralInst*>(inst))
             ctx.literals.push_back(literal->getValue());
     }
+    ctx.named_variables = global_variables;
 
-    std::unordered_map<Symbol, Value> variables;
-    registerBuiltinFunctions(&variables, allocator, symbol_table);
+    std::vector<std::pair<Symbol, Value>> tmp;
+    tmp.reserve(global_variables.size());
+    for (auto it: global_variables)
+        tmp.push_back(it);
+    std::sort(tmp.begin(), tmp.end(),
+        [](const std::pair<Symbol, Value>& a, const std::pair<Symbol, Value>& b) {
+            return a.first.toString() < b.first.toString();
+        });
+    std::vector<Value> variables;
+    variables.reserve(tmp.size());
+    for (auto it: tmp)
+        variables.push_back(it.second);
     Frame* frame = allocator->make<Frame>(nullptr, variables);
     ctx.frame_stack.push_back(frame);
+
+    return std::move(ctx);
+}
+
+
+int run(std::vector<Inst*>& code, Allocator* allocator,
+        std::unordered_map<Symbol, Value>& global_variables, bool trace) {
+
+    Context ctx = createContext(code, allocator, global_variables);
 
     try {
         for (;;) {
@@ -200,9 +224,12 @@ int main(int argc, char** argv) {
         Reader reader(&scanner, &symbol_table, &allocator, &source_map);
         Value value = reader.read();
         if (trace)
-            std::printf("     Datum: %s\n", value.toString().c_str());
+            std::printf("Datum: %s\n", value.toString().c_str());
 
-        Parser parser(&symbol_table, &source_map);
+        std::unordered_map<Symbol, Value> global_variables;
+        registerBuiltinFunctions(&global_variables, &allocator, &symbol_table);
+
+        Parser parser(&symbol_table, &source_map, global_variables);
         std::unique_ptr<Node> node(parser.parse(value));
         if (trace)
             std::printf("Expression: %s\n", node->toString().c_str());
@@ -217,7 +244,7 @@ int main(int argc, char** argv) {
                 std::printf("%s\n", inst->toString().c_str());
         }
 
-        int rc = run(code, &allocator, &symbol_table, trace);
+        int rc = run(code, &allocator, global_variables, trace);
 
         for (Inst* inst: code)
             delete inst;

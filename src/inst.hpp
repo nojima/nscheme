@@ -41,9 +41,9 @@ private:
 };
 
 
-class LoadVariableInst: public Inst {
+class LoadNamedVariableInst: public Inst {
 public:
-    LoadVariableInst(Symbol name): name_(name) {}
+    LoadNamedVariableInst(Symbol name): name_(name) {}
 
     std::string toString() const override {
         return "  load_variable " + name_.toString();
@@ -54,6 +54,25 @@ public:
 private:
     Symbol name_;
 };
+
+
+class LoadIndexedVariableInst: public Inst {
+public:
+    LoadIndexedVariableInst(size_t frame_index, size_t variable_index)
+        : frame_index_(frame_index), variable_index_(variable_index) {}
+
+    std::string toString() const override {
+        return "  load_indexed_variable " + std::to_string(frame_index_) + " " +
+               std::to_string(variable_index_);
+    }
+
+    void exec(Context* context) override;
+
+private:
+    size_t frame_index_;
+    size_t variable_index_;
+};
+
 
 class LoadLiteralInst: public Inst {
 public:
@@ -76,15 +95,14 @@ private:
 
 class LoadClosureInst: public Inst {
 public:
-    LoadClosureInst(LabelInst* label, const std::vector<Symbol>& args)
-        : label_(label), args_(args) {}
+    LoadClosureInst(LabelInst* label, size_t arg_size, size_t frame_size)
+        : label_(label), arg_size_(arg_size), frame_size_(frame_size) {}
 
     std::string toString() const override {
         std::string ret = "  load_closure " + label_->toString();
-        for (Symbol arg: args_) {
-            ret += ' ';
-            ret += arg.toString();
-        }
+        ret += std::to_string(arg_size_);
+        ret += " ";
+        ret += std::to_string(frame_size_);
         return std::move(ret);
     }
 
@@ -92,7 +110,8 @@ public:
 
 private:
     LabelInst* label_;
-    std::vector<Symbol> args_;
+    size_t arg_size_;
+    size_t frame_size_;
 };
 
 
@@ -119,12 +138,12 @@ private:
 };
 
 
-class DefineInst: public Inst {
+class NamedAssignInst: public Inst {
 public:
-    DefineInst(Symbol name): name_(name) {}
+    NamedAssignInst(Symbol name): name_(name) {}
 
     std::string toString() const override {
-        return "  define " + name_.toString();
+        return "  named_assign " + name_.toString();
     }
 
     void exec(Context* context) override;
@@ -134,18 +153,22 @@ private:
 };
 
 
-class AssignInst: public Inst {
+
+class IndexedAssignInst: public Inst {
 public:
-    AssignInst(Symbol name): name_(name) {}
+    IndexedAssignInst(size_t frame_index, size_t variable_index)
+        : frame_index_(frame_index), variable_index_(variable_index) {}
 
     std::string toString() const override {
-        return "  assign " + name_.toString();
+        return "  indexed_assign " + std::to_string(frame_index_) + " " +
+               std::to_string(variable_index_);
     }
 
     void exec(Context* context) override;
 
 private:
-    Symbol name_;
+    size_t frame_index_;
+    size_t variable_index_;
 };
 
 

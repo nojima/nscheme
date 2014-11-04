@@ -160,7 +160,7 @@ private:
 
 class Frame: public Object {
 public:
-    Frame(Frame* parent, const std::unordered_map<Symbol, Value>& variables)
+    Frame(Frame* parent, const std::vector<Value>& variables)
         : parent_(parent), variables_(variables) {}
 
     const Frame* getParent() const {
@@ -171,11 +171,11 @@ public:
         return parent_;
     }
 
-    const std::unordered_map<Symbol, Value>& getVariables() const {
+    const std::vector<Value>& getVariables() const {
         return variables_;
     }
 
-    std::unordered_map<Symbol, Value>& getVariables() {
+    std::vector<Value>& getVariables() {
         return variables_;
     }
 
@@ -191,15 +191,14 @@ public:
 
 private:
     Frame* parent_;
-    std::unordered_map<Symbol, Value> variables_;
+    std::vector<Value> variables_;
 };
 
 
 class ClosureObject: public Object {
 public:
-    ClosureObject(LabelInst* label, Frame* frame,
-                  const std::vector<Symbol>& arg_names)
-        : label_(label), frame_(frame), arg_names_(arg_names) {}
+    ClosureObject(LabelInst* label, Frame* frame, size_t arg_size, size_t frame_size)
+        : label_(label), frame_(frame), arg_size_(arg_size), frame_size_(frame_size) {}
 
     LabelInst* getLabel() const noexcept {
         return label_;
@@ -209,8 +208,12 @@ public:
         return frame_;
     }
 
-    const std::vector<Symbol>& getArgNames() const noexcept {
-        return arg_names_;
+    size_t getArgSize() const noexcept {
+        return arg_size_;
+    }
+
+    size_t getFrameSize() const noexcept {
+        return frame_size_;
     }
 
     std::string toString() const override {
@@ -226,7 +229,8 @@ public:
 private:
     LabelInst* label_;
     Frame* frame_;
-    std::vector<Symbol> arg_names_;
+    size_t arg_size_;
+    size_t frame_size_;
 };
 
 

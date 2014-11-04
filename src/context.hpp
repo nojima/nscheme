@@ -16,6 +16,7 @@ struct Context {
     std::vector<Inst**> control_stack;
     std::vector<Frame*> frame_stack;
     std::vector<Value> literals;
+    std::unordered_map<Symbol, Value> named_variables;
     Allocator* allocator;
 };
 

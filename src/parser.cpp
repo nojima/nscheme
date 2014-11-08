@@ -7,11 +7,16 @@ namespace {
 using namespace nscheme;
 
 
-bool isSelfEvaluating(Value value) {
-    if (value.isInteger()) return true;
-    if (value.isCharacter()) return true;
-    if (value == Value::True) return true;
-    if (value == Value::False) return true;
+bool isSelfEvaluating(Value value)
+{
+    if (value.isInteger())
+        return true;
+    if (value.isCharacter())
+        return true;
+    if (value == Value::True)
+        return true;
+    if (value == Value::False)
+        return true;
     if (value.isPointer()) {
         auto p1 = dynamic_cast<StringObject*>(value.asPointer());
         if (p1 != nullptr)
@@ -27,36 +32,36 @@ bool isSelfEvaluating(Value value) {
 }
 
 
-inline bool isPair(Value value) {
+inline bool isPair(Value value)
+{
     if (!value.isPointer())
         return false;
     return dynamic_cast<PairObject*>(value.asPointer());
 }
 
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
+template <typename T, typename... Args> std::unique_ptr<T> make_unique(Args&&... args)
+{
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
 
-}   // namespace
+} // namespace
 
 
 namespace nscheme {
 
 
-std::unique_ptr<Node> Parser::parse(Value datum) {
+std::unique_ptr<Node> Parser::parse(Value datum)
+{
     Position dummy(symbol_table_->intern(""), 1, 1);
 
     // sort global variables
     std::vector<Symbol> symbols;
-    for (auto it: global_variables_)
+    for (auto it : global_variables_)
         symbols.push_back(it.first);
     std::sort(symbols.begin(), symbols.end(),
-        [](const Symbol& a, const Symbol& b) {
-            return a.toString() < b.toString();
-        });
+              [](const Symbol& a, const Symbol& b) { return a.toString() < b.toString(); });
 
     LocalNames names(nullptr);
     for (size_t i = 0; i < symbols.size(); ++i) {
@@ -74,7 +79,9 @@ std::unique_ptr<Node> Parser::parse(Value datum) {
 }
 
 
-bool Parser::lookupSymbol(Symbol symbol, const LocalNames& names, std::pair<size_t, size_t>* out) const {
+bool Parser::lookupSymbol(Symbol symbol, const LocalNames& names,
+                          std::pair<size_t, size_t>* out) const
+{
     size_t frame_index = 0;
     for (const LocalNames* p = &names; p != nullptr; p = p->parent) {
         auto it = p->name2index.find(symbol);
@@ -89,7 +96,9 @@ bool Parser::lookupSymbol(Symbol symbol, const LocalNames& names, std::pair<size
 }
 
 
-std::unique_ptr<Node> Parser::parseExprOrDefine(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<Node> Parser::parseExprOrDefine(Value value, const Position& position,
+                                                LocalNames& names)
+{
     if (isPair(value)) {
         PairObject* p = static_cast<PairObject*>(value.asPointer());
         Value head = p->getCar();
@@ -100,7 +109,9 @@ std::unique_ptr<Node> Parser::parseExprOrDefine(Value value, const Position& pos
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseExpr(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseExpr(Value value, const Position& position,
+                                            LocalNames& names)
+{
     if (value.isSymbol()) {
         return parseVariable(value.asSymbol(), position, names);
     }
@@ -131,7 +142,9 @@ std::unique_ptr<ExprNode> Parser::parseExpr(Value value, const Position& positio
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseVariable(Symbol symbol, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseVariable(Symbol symbol, const Position& position,
+                                                LocalNames& names)
+{
     std::pair<size_t, size_t> index;
     if (lookupSymbol(symbol, names, &index))
         return make_unique<IndexedVariableNode>(position, index.first, index.second);
@@ -140,7 +153,9 @@ std::unique_ptr<ExprNode> Parser::parseVariable(Symbol symbol, const Position& p
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseLambda(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseLambda(Value value, const Position& position,
+                                              LocalNames& names)
+{
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'lambda'");
     PairObject* p1 = static_cast<PairObject*>(value.asPointer());
@@ -156,7 +171,8 @@ std::unique_ptr<ExprNode> Parser::parseLambda(Value value, const Position& posit
     if (v1.isSymbol()) {
         variable = true;
         args.push_back(v1.asSymbol());
-    } else if (isPair(v1)) {
+    }
+    else if (isPair(v1)) {
         Value v = v1;
         while (isPair(v)) {
             PairObject* p = static_cast<PairObject*>(v.asPointer());
@@ -195,9 +211,10 @@ std::unique_ptr<ExprNode> Parser::parseLambda(Value value, const Position& posit
 
     // Parse definitions
 
-    for (auto& node: nodes) {
+    for (auto& node : nodes) {
         if (DefineNode* def = dynamic_cast<DefineNode*>(node.get())) {
-            auto expr = parseExpr(def->getUnparsedExpr(), def->getUnparsedExprPosition(), local_names);
+            auto expr
+                = parseExpr(def->getUnparsedExpr(), def->getUnparsedExprPosition(), local_names);
             def->setExpr(std::move(expr));
         }
     }
@@ -207,7 +224,9 @@ std::unique_ptr<ExprNode> Parser::parseLambda(Value value, const Position& posit
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseProcedureCall(PairObject* list, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseProcedureCall(PairObject* list, const Position& position,
+                                                     LocalNames& names)
+{
     auto callee = parseExpr(list->getCar(), position, names);
     std::vector<std::unique_ptr<ExprNode>> args;
     Value v = list->getCdr();
@@ -223,7 +242,8 @@ std::unique_ptr<ExprNode> Parser::parseProcedureCall(PairObject* list, const Pos
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseIf(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseIf(Value value, const Position& position, LocalNames& names)
+{
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'if'");
     PairObject* p1 = static_cast<PairObject*>(value.asPointer());
@@ -239,14 +259,14 @@ std::unique_ptr<ExprNode> Parser::parseIf(Value value, const Position& position,
     auto cond_node = parseExpr(p1->getCar(), source_map_->at(p1), names);
     auto then_node = parseExpr(p2->getCar(), source_map_->at(p2), names);
     auto else_node = parseExpr(p3->getCar(), source_map_->at(p3), names);
-    return make_unique<IfNode>(position,
-                               std::move(cond_node),
-                               std::move(then_node),
+    return make_unique<IfNode>(position, std::move(cond_node), std::move(then_node),
                                std::move(else_node));
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseAssignment(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<ExprNode> Parser::parseAssignment(Value value, const Position& position,
+                                                  LocalNames& names)
+{
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'set!'");
     PairObject* p1 = static_cast<PairObject*>(value.asPointer());
@@ -262,13 +282,15 @@ std::unique_ptr<ExprNode> Parser::parseAssignment(Value value, const Position& p
     auto expr = parseExpr(p2->getCar(), source_map_->at(p2), names);
     std::pair<size_t, size_t> index;
     if (lookupSymbol(symbol, names, &index))
-        return make_unique<IndexedAssignmentNode>(position, index.first, index.second, std::move(expr));
+        return make_unique<IndexedAssignmentNode>(position, index.first, index.second,
+                                                  std::move(expr));
     else
         return make_unique<NamedAssignmentNode>(position, symbol, std::move(expr));
 }
 
 
-std::unique_ptr<ExprNode> Parser::parseQuote(Value value, const Position& position, LocalNames&) {
+std::unique_ptr<ExprNode> Parser::parseQuote(Value value, const Position& position, LocalNames&)
+{
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'quote'");
     PairObject* p = static_cast<PairObject*>(value.asPointer());
@@ -278,7 +300,8 @@ std::unique_ptr<ExprNode> Parser::parseQuote(Value value, const Position& positi
 }
 
 
-std::unique_ptr<Node> Parser::parseDefine(Value value, const Position& position, LocalNames& names) {
+std::unique_ptr<Node> Parser::parseDefine(Value value, const Position& position, LocalNames& names)
+{
     if (!isPair(value))
         throw ParseError(position, "invalid syntax of 'define'");
     PairObject* p1 = static_cast<PairObject*>(value.asPointer());
@@ -294,12 +317,14 @@ std::unique_ptr<Node> Parser::parseDefine(Value value, const Position& position,
         size_t index = names.name2index.size();
         names.name2index.insert(std::make_pair(name, index));
         return make_unique<DefineNode>(position, name, index, p2->getCar(), source_map_->at(p2));
-    } else if (isPair(v1)) {
+    }
+    else if (isPair(v1)) {
         throw ParseError(position, "not implemented");
-    } else {
+    }
+    else {
         throw ParseError(position, "invalid argument of 'define'");
     }
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

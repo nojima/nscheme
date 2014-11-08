@@ -6,12 +6,11 @@
 namespace nscheme {
 
 
-void LabelInst::exec(Context* ctx) {
-    ctx->ip++;
-}
+void LabelInst::exec(Context* ctx) { ctx->ip++; }
 
 
-void LoadNamedVariableInst::exec(Context* ctx) {
+void LoadNamedVariableInst::exec(Context* ctx)
+{
     auto it = ctx->named_variables.find(name_);
     if (it != ctx->named_variables.end()) {
         ctx->value_stack.push_back(it->second);
@@ -22,7 +21,8 @@ void LoadNamedVariableInst::exec(Context* ctx) {
 }
 
 
-void LoadIndexedVariableInst::exec(Context* ctx) {
+void LoadIndexedVariableInst::exec(Context* ctx)
+{
     Frame* frame = ctx->frame_stack.back();
     for (size_t i = 0; i < frame_index_; ++i)
         frame = frame->getParent();
@@ -32,15 +32,18 @@ void LoadIndexedVariableInst::exec(Context* ctx) {
 }
 
 
-void LoadLiteralInst::exec(Context* ctx) {
+void LoadLiteralInst::exec(Context* ctx)
+{
     ctx->value_stack.push_back(value_);
     ctx->ip++;
 }
 
 
-void LoadClosureInst::exec(Context* ctx) {
+void LoadClosureInst::exec(Context* ctx)
+{
     Frame* frame = ctx->frame_stack.back();
-    ClosureObject* closure = ctx->allocator->make<ClosureObject>(label_, frame, arg_size_, frame_size_);
+    ClosureObject* closure
+        = ctx->allocator->make<ClosureObject>(label_, frame, arg_size_, frame_size_);
     ctx->value_stack.push_back(Value::fromPointer(closure));
     ctx->ip++;
     if (ctx->allocator->needGc())
@@ -48,7 +51,8 @@ void LoadClosureInst::exec(Context* ctx) {
 }
 
 
-void ApplyInst::exec(Context* ctx) {
+void ApplyInst::exec(Context* ctx)
+{
     Value v = ctx->value_stack.back();
     ctx->value_stack.pop_back();
     if (v.isPointer()) {
@@ -65,7 +69,8 @@ void ApplyInst::exec(Context* ctx) {
             if (tail_) {
                 ctx->frame_stack.pop_back();
                 ctx->frame_stack.push_back(frame);
-            } else {
+            }
+            else {
                 ctx->control_stack.push_back(ctx->ip + 1);
                 ctx->frame_stack.push_back(frame);
             }
@@ -95,7 +100,8 @@ void ApplyInst::exec(Context* ctx) {
 }
 
 
-void NamedAssignInst::exec(Context* ctx) {
+void NamedAssignInst::exec(Context* ctx)
+{
     auto it = ctx->named_variables.find(name_);
     if (it != ctx->named_variables.end()) {
         it->second = ctx->value_stack.back();
@@ -108,7 +114,8 @@ void NamedAssignInst::exec(Context* ctx) {
 }
 
 
-void IndexedAssignInst::exec(Context* ctx) {
+void IndexedAssignInst::exec(Context* ctx)
+{
     Frame* frame = ctx->frame_stack.back();
     for (size_t i = 0; i < frame_index_; ++i)
         frame = frame->getParent();
@@ -119,38 +126,38 @@ void IndexedAssignInst::exec(Context* ctx) {
 }
 
 
-void ReturnInst::exec(Context* ctx) {
+void ReturnInst::exec(Context* ctx)
+{
     ctx->frame_stack.pop_back();
     ctx->ip = ctx->control_stack.back();
     ctx->control_stack.pop_back();
 }
 
 
-void DiscardInst::exec(Context* ctx) {
+void DiscardInst::exec(Context* ctx)
+{
     ctx->value_stack.pop_back();
     ctx->ip++;
 }
 
 
-void JumpInst::exec(Context* ctx) {
-    ctx->ip = label_->getLocation();
-}
+void JumpInst::exec(Context* ctx) { ctx->ip = label_->getLocation(); }
 
 
-void JumpIfInst::exec(Context* ctx) {
+void JumpIfInst::exec(Context* ctx)
+{
     Value value = ctx->value_stack.back();
     ctx->value_stack.pop_back();
     if (value.asBoolean()) {
         ctx->ip = label_->getLocation();
-    } else {
+    }
+    else {
         ctx->ip++;
     }
 }
 
 
-void QuitInst::exec(Context*) {
-    throw Quit();
-}
+void QuitInst::exec(Context*) { throw Quit(); }
 
 
-}   // namespace nscheme
+} // namespace nscheme

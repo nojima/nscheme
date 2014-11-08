@@ -1,0 +1,4 @@
+BasedOnStyle: WebKit
+Standard: C++11
+ColumnLimit: 100
+MaxEmptyLinesToKeep: 2

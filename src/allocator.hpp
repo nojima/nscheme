@@ -12,22 +12,21 @@ struct Context;
 
 class Allocator {
 public:
-    ~Allocator() {
-        for (Object* p: objects_)
+    ~Allocator()
+    {
+        for (Object* p : objects_)
             delete p;
     }
 
-    template <typename T, typename ...Args>
-    T* make(Args&& ...args) {
+    template <typename T, typename... Args> T* make(Args&&... args)
+    {
         T* ptr = new T(std::forward<Args>(args)...);
         objects_.push_front(ptr);
         size_ += sizeof(T);
         return ptr;
     }
 
-    bool needGc() const {
-        return size_ > limit_;
-    }
+    bool needGc() const { return size_ > limit_; }
 
     void gc(Context* ctx);
 
@@ -38,4 +37,4 @@ private:
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

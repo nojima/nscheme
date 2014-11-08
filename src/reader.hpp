@@ -15,11 +15,14 @@ namespace nscheme {
 
 class Reader {
 public:
-    Reader(Scanner* scanner, SymbolTable* symbol_table,
-           Allocator* allocator, SourceMap* source_map)
-        : scanner_(scanner), symbol_table_(symbol_table)
-        , allocator_(allocator), source_map_(source_map)
-        , token_(scanner_->getToken()) {}
+    Reader(Scanner* scanner, SymbolTable* symbol_table, Allocator* allocator, SourceMap* source_map)
+        : scanner_(scanner)
+        , symbol_table_(symbol_table)
+        , allocator_(allocator)
+        , source_map_(source_map)
+        , token_(scanner_->getToken())
+    {
+    }
 
     Value read();
 
@@ -37,10 +40,12 @@ private:
 };
 
 
-struct ReadError: public std::runtime_error {
+struct ReadError : public std::runtime_error {
     ReadError(const Position& position, const std::string& message)
-        : std::runtime_error(position.toString() + ": " + message) {}
+        : std::runtime_error(position.toString() + ": " + message)
+    {
+    }
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

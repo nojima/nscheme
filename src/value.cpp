@@ -11,7 +11,8 @@ const Value Value::True(Value::kTrue);
 const Value Value::Undefined(Value::kUndefined);
 
 
-std::string Value::toString() const {
+std::string Value::toString() const
+{
     if (value_ == kNil) {
         return "()";
     }
@@ -37,4 +38,4 @@ std::string Value::toString() const {
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

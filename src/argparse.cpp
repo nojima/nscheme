@@ -3,15 +3,12 @@
 namespace nscheme {
 
 
-void ArgumentParser::addArgument(const std::string& name) {
-    argument_names_.push_back(name);
-}
+void ArgumentParser::addArgument(const std::string& name) { argument_names_.push_back(name); }
 
 
-void ArgumentParser::addOption(const std::string& name,
-                               const std::string& short_name,
-                               const std::string& long_name,
-                               bool has_value) {
+void ArgumentParser::addOption(const std::string& name, const std::string& short_name,
+                               const std::string& long_name, bool has_value)
+{
     if (!short_name.empty())
         option_names_.insert(std::make_pair(short_name, name));
     if (!long_name.empty())
@@ -21,8 +18,8 @@ void ArgumentParser::addOption(const std::string& name,
 }
 
 
-std::unordered_map<std::string, std::string>
-ArgumentParser::parse(int argc, char** argv) {
+std::unordered_map<std::string, std::string> ArgumentParser::parse(int argc, char** argv)
+{
     std::unordered_map<std::string, std::string> result;
     std::string option_name;
     size_t n_arguments = 0;
@@ -100,7 +97,8 @@ ArgumentParser::parse(int argc, char** argv) {
                         option_name = it->second;
                     else
                         result.insert(std::make_pair(it->second, "true"));
-                } else {
+                }
+                else {
                     if (has_value_.count(it->second))
                         throw ArgumentParseError("You must specify the value of '-" + s + "'");
                     result.insert(std::make_pair(it->second, "true"));
@@ -118,7 +116,8 @@ ArgumentParser::parse(int argc, char** argv) {
                 if (!has_value_.count(it->second))
                     throw ArgumentParseError("You cannot specify the value of '-" + s + "'");
                 result.insert(std::make_pair(it->second, std::string(arg + j + 1)));
-            } else {
+            }
+            else {
                 if (has_value_.count(it->second))
                     throw ArgumentParseError("You must specify the value of '-" + s + "'");
                 result.insert(std::make_pair(it->second, "true"));
@@ -131,4 +130,4 @@ ArgumentParser::parse(int argc, char** argv) {
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

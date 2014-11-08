@@ -10,4 +10,4 @@ namespace nscheme {
 
 using SourceMap = std::unordered_map<Object*, Position>;
 
-}    // namespace nscheme
+} // namespace nscheme

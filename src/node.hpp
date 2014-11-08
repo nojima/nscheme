@@ -14,12 +14,13 @@ struct Code;
 
 class Node {
 public:
-    Node(const Position& position): position_(position) {}
+    Node(const Position& position)
+        : position_(position)
+    {
+    }
     virtual ~Node() {}
 
-    const Position& getPosition() const noexcept {
-        return position_;
-    }
+    const Position& getPosition() const noexcept { return position_; }
 
     virtual std::string toString() const = 0;
     virtual void codegen(Code& code) = 0;
@@ -29,16 +30,22 @@ private:
 };
 
 
-class ExprNode: public Node {
+class ExprNode : public Node {
 public:
-    ExprNode(const Position& position): Node(position) {}
+    ExprNode(const Position& position)
+        : Node(position)
+    {
+    }
 };
 
 
-class NamedVariableNode: public ExprNode {
+class NamedVariableNode : public ExprNode {
 public:
     NamedVariableNode(const Position& position, Symbol name)
-        : ExprNode(position), name_(name) {}
+        : ExprNode(position)
+        , name_(name)
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -47,12 +54,14 @@ private:
 };
 
 
-class IndexedVariableNode: public ExprNode {
+class IndexedVariableNode : public ExprNode {
 public:
-    IndexedVariableNode(const Position& position,
-                        size_t frame_index, size_t variable_index)
+    IndexedVariableNode(const Position& position, size_t frame_index, size_t variable_index)
         : ExprNode(position)
-        , frame_index_(frame_index), variable_index_(variable_index) {}
+        , frame_index_(frame_index)
+        , variable_index_(variable_index)
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -62,10 +71,13 @@ private:
 };
 
 
-class LiteralNode: public ExprNode {
+class LiteralNode : public ExprNode {
 public:
     explicit LiteralNode(const Position& position, Value value)
-        : ExprNode(position), value_(value) {}
+        : ExprNode(position)
+        , value_(value)
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -74,14 +86,15 @@ private:
 };
 
 
-class ProcedureCallNode: public ExprNode {
+class ProcedureCallNode : public ExprNode {
 public:
-    ProcedureCallNode(const Position& position,
-                      std::unique_ptr<ExprNode> callee,
+    ProcedureCallNode(const Position& position, std::unique_ptr<ExprNode> callee,
                       std::vector<std::unique_ptr<ExprNode>>&& operand)
         : ExprNode(position)
         , callee_(std::move(callee))
-        , operand_(std::move(operand)) {}
+        , operand_(std::move(operand))
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -91,30 +104,25 @@ private:
 };
 
 
-class DefineNode: public Node {
+class DefineNode : public Node {
 public:
-    DefineNode(const Position& position, Symbol name, size_t index,
-               Value unparsed_expr, const Position& expr_position)
-        : Node(position), name_(name), index_(index)
+    DefineNode(const Position& position, Symbol name, size_t index, Value unparsed_expr,
+               const Position& expr_position)
+        : Node(position)
+        , name_(name)
+        , index_(index)
         , unparsed_expr_(unparsed_expr)
         , expr_position_(expr_position)
-        {}
-
-    Symbol getName() const noexcept {
-        return name_;
+    {
     }
 
-    Value getUnparsedExpr() const noexcept {
-        return unparsed_expr_;
-    }
+    Symbol getName() const noexcept { return name_; }
 
-    const Position& getUnparsedExprPosition() const noexcept {
-        return expr_position_;
-    }
+    Value getUnparsedExpr() const noexcept { return unparsed_expr_; }
 
-    void setExpr(std::unique_ptr<ExprNode>&& expr) {
-        expr_ = std::move(expr);
-    }
+    const Position& getUnparsedExprPosition() const noexcept { return expr_position_; }
+
+    void setExpr(std::unique_ptr<ExprNode>&& expr) { expr_ = std::move(expr); }
 
     std::string toString() const override;
     void codegen(Code& code) override;
@@ -128,18 +136,17 @@ private:
 };
 
 
-class LambdaNode: public ExprNode {
+class LambdaNode : public ExprNode {
 public:
-    LambdaNode(const Position& position,
-               const std::vector<Symbol>& arg_names,
-               bool variable_args,
-               size_t frame_size,
-               std::vector<std::unique_ptr<Node>>&& nodes)
+    LambdaNode(const Position& position, const std::vector<Symbol>& arg_names, bool variable_args,
+               size_t frame_size, std::vector<std::unique_ptr<Node>>&& nodes)
         : ExprNode(position)
         , arg_names_(arg_names)
         , variable_args_(variable_args)
         , frame_size_(frame_size)
-        , nodes_(std::move(nodes)) {}
+        , nodes_(std::move(nodes))
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -151,16 +158,16 @@ private:
 };
 
 
-class IfNode: public ExprNode {
+class IfNode : public ExprNode {
 public:
-    IfNode(const Position& position,
-           std::unique_ptr<ExprNode> cond_node,
-           std::unique_ptr<ExprNode> then_node,
-           std::unique_ptr<ExprNode> else_node)
+    IfNode(const Position& position, std::unique_ptr<ExprNode> cond_node,
+           std::unique_ptr<ExprNode> then_node, std::unique_ptr<ExprNode> else_node)
         : ExprNode(position)
         , cond_node_(std::move(cond_node))
         , then_node_(std::move(then_node))
-        , else_node_(std::move(else_node)) {}
+        , else_node_(std::move(else_node))
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -171,12 +178,14 @@ private:
 };
 
 
-class NamedAssignmentNode: public ExprNode {
+class NamedAssignmentNode : public ExprNode {
 public:
-    NamedAssignmentNode(const Position& position, Symbol name,
-                       std::unique_ptr<ExprNode> expr)
-        : ExprNode(position), name_(name)
-        , expr_(std::move(expr)) {}
+    NamedAssignmentNode(const Position& position, Symbol name, std::unique_ptr<ExprNode> expr)
+        : ExprNode(position)
+        , name_(name)
+        , expr_(std::move(expr))
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -186,16 +195,16 @@ private:
 };
 
 
-class IndexedAssignmentNode: public ExprNode {
+class IndexedAssignmentNode : public ExprNode {
 public:
-    IndexedAssignmentNode(const Position& position,
-                          size_t frame_index,
-                          size_t variable_index,
+    IndexedAssignmentNode(const Position& position, size_t frame_index, size_t variable_index,
                           std::unique_ptr<ExprNode> expr)
         : ExprNode(position)
         , frame_index_(frame_index)
         , variable_index_(variable_index)
-        , expr_(std::move(expr)) {}
+        , expr_(std::move(expr))
+    {
+    }
     std::string toString() const override;
     void codegen(Code& code) override;
 
@@ -206,4 +215,4 @@ private:
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

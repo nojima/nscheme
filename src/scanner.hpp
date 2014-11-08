@@ -12,15 +12,16 @@ namespace nscheme {
 class Scanner {
 public:
     Scanner(Stream* stream, SymbolTable* symbol_table)
-        : stream_(stream), symbol_table_(symbol_table)
-        , ch_(stream->getChar()) {}
+        : stream_(stream)
+        , symbol_table_(symbol_table)
+        , ch_(stream->getChar())
+    {
+    }
 
     Token getToken();
 
 private:
-    Position getPosition() {
-        return stream_->getPosition();
-    }
+    Position getPosition() { return stream_->getPosition(); }
 
     Token tokenizeIdentifier();
     Token tokenizeCharacter();
@@ -33,10 +34,12 @@ private:
 };
 
 
-struct ScanError: public std::runtime_error {
+struct ScanError : public std::runtime_error {
     ScanError(const Position& position, const std::string& message)
-        : std::runtime_error(position.toString() + ": " + message) {}
+        : std::runtime_error(position.toString() + ": " + message)
+    {
+    }
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

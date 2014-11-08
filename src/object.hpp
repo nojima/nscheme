@@ -21,96 +21,76 @@ public:
     virtual void mark() = 0;
     virtual size_t size() const = 0;
 
-    bool isMarked() const {
-        return marked_;
-    }
+    bool isMarked() const { return marked_; }
 
-    void resetMark() {
-        marked_ = false;
-    }
+    void resetMark() { marked_ = false; }
 
 protected:
     bool marked_ = false;
 };
 
 
-class StringObject: public Object {
+class StringObject : public Object {
 public:
     StringObject(const std::string& str)
-        : str_(str) {}
+        : str_(str)
+    {
+    }
 
     std::string toString() const override;
 
-    void mark() override {
-        marked_ = true;
-    }
+    void mark() override { marked_ = true; }
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     std::string str_;
 };
 
 
-class RealObject: public Object {
+class RealObject : public Object {
 public:
-    RealObject(double real): real_(real) {}
-
-    std::string toString() const override {
-        return std::to_string(real_);
+    RealObject(double real)
+        : real_(real)
+    {
     }
 
-    void mark() override {
-        marked_ = true;
-    }
+    std::string toString() const override { return std::to_string(real_); }
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    void mark() override { marked_ = true; }
+
+    size_t size() const override { return sizeof(*this); }
 
 private:
     double real_;
 };
 
 
-class PairObject: public Object {
+class PairObject : public Object {
 public:
     PairObject(Value car, Value cdr)
-        : car_(car), cdr_(cdr) {}
-
-    Value getCar() {
-        return car_;
+        : car_(car)
+        , cdr_(cdr)
+    {
     }
 
-    const Value getCar() const {
-        return car_;
-    }
+    Value getCar() { return car_; }
 
-    void setCar(Value car) {
-        car_ = car;
-    }
+    const Value getCar() const { return car_; }
 
-    Value getCdr() {
-        return cdr_;
-    }
+    void setCar(Value car) { car_ = car; }
 
-    const Value getCdr() const {
-        return cdr_;
-    }
+    Value getCdr() { return cdr_; }
 
-    void setCdr(Value cdr) {
-        cdr_ = cdr;
-    }
+    const Value getCdr() const { return cdr_; }
+
+    void setCdr(Value cdr) { cdr_ = cdr; }
 
     std::string toString() const override;
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     Value car_;
@@ -118,76 +98,57 @@ private:
 };
 
 
-class VectorObject: public Object {
+class VectorObject : public Object {
 public:
     VectorObject() {}
 
     VectorObject(size_t length, Value fill)
-        : values_(length, fill) {}
-
-    size_t getLength() const noexcept {
-        return values_.size();
+        : values_(length, fill)
+    {
     }
 
-    Value get(size_t index) {
-        return values_[index];
-    }
+    size_t getLength() const noexcept { return values_.size(); }
 
-    const Value get(size_t index) const {
-        return values_[index];
-    }
+    Value get(size_t index) { return values_[index]; }
 
-    void add(Value value) {
-        values_.push_back(value);
-    }
+    const Value get(size_t index) const { return values_[index]; }
 
-    void set(size_t index, Value value) {
-        values_[index] = value;
-    }
+    void add(Value value) { values_.push_back(value); }
+
+    void set(size_t index, Value value) { values_[index] = value; }
 
     std::string toString() const override;
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     std::vector<Value> values_;
 };
 
 
-class Frame: public Object {
+class Frame : public Object {
 public:
     Frame(Frame* parent, const std::vector<Value>& variables)
-        : parent_(parent), variables_(variables) {}
-
-    const Frame* getParent() const {
-        return parent_;
+        : parent_(parent)
+        , variables_(variables)
+    {
     }
 
-    Frame* getParent() {
-        return parent_;
-    }
+    const Frame* getParent() const { return parent_; }
 
-    const std::vector<Value>& getVariables() const {
-        return variables_;
-    }
+    Frame* getParent() { return parent_; }
 
-    std::vector<Value>& getVariables() {
-        return variables_;
-    }
+    const std::vector<Value>& getVariables() const { return variables_; }
 
-    std::string toString() const {
-        return "<frame>";
-    }
+    std::vector<Value>& getVariables() { return variables_; }
+
+    std::string toString() const { return "<frame>"; }
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     Frame* parent_;
@@ -195,36 +156,32 @@ private:
 };
 
 
-class ClosureObject: public Object {
+class ClosureObject : public Object {
 public:
     ClosureObject(LabelInst* label, Frame* frame, size_t arg_size, size_t frame_size)
-        : label_(label), frame_(frame), arg_size_(arg_size), frame_size_(frame_size) {}
-
-    LabelInst* getLabel() const noexcept {
-        return label_;
+        : label_(label)
+        , frame_(frame)
+        , arg_size_(arg_size)
+        , frame_size_(frame_size)
+    {
     }
 
-    Frame* getFrame() const noexcept {
-        return frame_;
-    }
+    LabelInst* getLabel() const noexcept { return label_; }
 
-    size_t getArgSize() const noexcept {
-        return arg_size_;
-    }
+    Frame* getFrame() const noexcept { return frame_; }
 
-    size_t getFrameSize() const noexcept {
-        return frame_size_;
-    }
+    size_t getArgSize() const noexcept { return arg_size_; }
 
-    std::string toString() const override {
+    size_t getFrameSize() const noexcept { return frame_size_; }
+
+    std::string toString() const override
+    {
         return "<closure " + std::to_string((uintptr_t)label_) + ">";
     }
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     LabelInst* label_;
@@ -234,66 +191,53 @@ private:
 };
 
 
-class CFunctionObject: public Object {
+class CFunctionObject : public Object {
 public:
-    CFunctionObject(const std::function<void (Context*, size_t)>& func,
-                    const std::string& name)
-        : func_(func), name_(name) {}
-
-    void call(Context* ctx, size_t n_args) {
-        func_(ctx, n_args);
+    CFunctionObject(const std::function<void(Context*, size_t)>& func, const std::string& name)
+        : func_(func)
+        , name_(name)
+    {
     }
 
-    std::string toString() const override {
-        return "<c_function " + name_ + ">";
-    }
+    void call(Context* ctx, size_t n_args) { func_(ctx, n_args); }
+
+    std::string toString() const override { return "<c_function " + name_ + ">"; }
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
-    std::function<void (Context*, size_t)> func_;
+    std::function<void(Context*, size_t)> func_;
     std::string name_;
 };
 
 
-class ContinuationObject: public Object {
+class ContinuationObject : public Object {
 public:
-    ContinuationObject(Inst** ip,
-                       const std::vector<Value>& value_stack,
+    ContinuationObject(Inst** ip, const std::vector<Value>& value_stack,
                        const std::vector<Inst**>& control_stack,
                        const std::vector<Frame*>& frame_stack)
-        : ip_(ip), value_stack_(value_stack), control_stack_(control_stack)
-        , frame_stack_(frame_stack) {}
-
-    Inst** getInstrunctionPointer() {
-        return ip_;
+        : ip_(ip)
+        , value_stack_(value_stack)
+        , control_stack_(control_stack)
+        , frame_stack_(frame_stack)
+    {
     }
 
-    std::vector<Value>& getValueStack() {
-        return value_stack_;
-    }
+    Inst** getInstrunctionPointer() { return ip_; }
 
-    std::vector<Inst**>& getControlStack() {
-        return control_stack_;
-    }
+    std::vector<Value>& getValueStack() { return value_stack_; }
 
-    std::vector<Frame*>& getFrameStack() {
-        return frame_stack_;
-    }
+    std::vector<Inst**>& getControlStack() { return control_stack_; }
 
-    std::string toString() const override {
-        return "<continuation>";
-    }
+    std::vector<Frame*>& getFrameStack() { return frame_stack_; }
+
+    std::string toString() const override { return "<continuation>"; }
 
     void mark() override;
 
-    size_t size() const override {
-        return sizeof(*this);
-    }
+    size_t size() const override { return sizeof(*this); }
 
 private:
     Inst** ip_;
@@ -303,4 +247,4 @@ private:
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

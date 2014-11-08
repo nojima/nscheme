@@ -13,13 +13,10 @@ class ArgumentParser {
 public:
     void addArgument(const std::string& name);
 
-    void addOption(const std::string& name,
-                   const std::string& short_name = "",
-                   const std::string& long_name = "",
-                   bool has_value = false);
+    void addOption(const std::string& name, const std::string& short_name = "",
+                   const std::string& long_name = "", bool has_value = false);
 
-    std::unordered_map<std::string, std::string>
-    parse(int argc, char** argv);
+    std::unordered_map<std::string, std::string> parse(int argc, char** argv);
 
 private:
     std::vector<std::string> argument_names_;
@@ -28,10 +25,12 @@ private:
 };
 
 
-struct ArgumentParseError: public std::runtime_error {
+struct ArgumentParseError : public std::runtime_error {
     ArgumentParseError(const std::string& message)
-        : std::runtime_error(message) {}
+        : std::runtime_error(message)
+    {
+    }
 };
 
 
-}   // namespace nscheme
+} // namespace nscheme

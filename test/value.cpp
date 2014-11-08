@@ -2,7 +2,8 @@
 #include "gtest/gtest.h"
 using namespace nscheme;
 
-TEST(ValueTest, Integer) {
+TEST(ValueTest, Integer)
+{
     Value v = Value::fromInteger(42);
     EXPECT_TRUE(v.isInteger());
     EXPECT_FALSE(v.isPointer());

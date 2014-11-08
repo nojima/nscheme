@@ -6,7 +6,8 @@
 namespace nscheme {
 
 
-void PairObject::mark() {
+void PairObject::mark()
+{
     if (marked_)
         return;
     marked_ = true;
@@ -17,11 +18,13 @@ void PairObject::mark() {
 }
 
 
-std::string StringObject::toString() const {
+std::string StringObject::toString() const
+{
     std::string buffer("\"");
     for (char ch : str_) {
         switch (ch) {
-        case '"': case '\\':
+        case '"':
+        case '\\':
             buffer.push_back('\\');
             buffer.push_back(ch);
             break;
@@ -37,7 +40,8 @@ std::string StringObject::toString() const {
         default:
             if (isprint(ch)) {
                 buffer.push_back(ch);
-            } else {
+            }
+            else {
                 char tmp[16];
                 std::snprintf(tmp, sizeof(tmp), "\\x%02x", ch);
                 buffer += tmp;
@@ -50,18 +54,19 @@ std::string StringObject::toString() const {
 }
 
 
-std::string PairObject::toString() const {
+std::string PairObject::toString() const
+{
     std::string buffer("(");
     const PairObject* obj = this;
-    for (size_t i = 0; ; ++i) {
+    for (size_t i = 0;; ++i) {
         if (i != 0)
             buffer.push_back(' ');
         buffer += obj->car_.toString();
 
         if (obj->cdr_ == Value::Nil)
             break;
-        if (!cdr_.isPointer() ||
-            dynamic_cast<const PairObject*>(obj->cdr_.asPointer()) == nullptr) {
+        if (!cdr_.isPointer()
+            || dynamic_cast<const PairObject*>(obj->cdr_.asPointer()) == nullptr) {
             buffer += " . ";
             buffer += obj->cdr_.toString();
             break;
@@ -73,7 +78,8 @@ std::string PairObject::toString() const {
 }
 
 
-std::string VectorObject::toString() const {
+std::string VectorObject::toString() const
+{
     std::string buffer("#(");
     for (size_t i = 0; i < values_.size(); ++i) {
         if (i != 0)
@@ -85,31 +91,34 @@ std::string VectorObject::toString() const {
 }
 
 
-void VectorObject::mark() {
+void VectorObject::mark()
+{
     if (marked_)
         return;
     marked_ = true;
-    for (Value v: values_) {
+    for (Value v : values_) {
         if (v.isPointer())
             v.asPointer()->mark();
     }
 }
 
 
-void Frame::mark() {
+void Frame::mark()
+{
     if (marked_)
         return;
     marked_ = true;
     if (parent_)
         parent_->mark();
-    for (auto v: variables_) {
+    for (auto v : variables_) {
         if (v.isPointer())
             v.asPointer()->mark();
     }
 }
 
 
-void ClosureObject::mark() {
+void ClosureObject::mark()
+{
     if (marked_)
         return;
     marked_ = true;
@@ -117,22 +126,21 @@ void ClosureObject::mark() {
 }
 
 
-void CFunctionObject::mark() {
-    marked_ = true;
-}
+void CFunctionObject::mark() { marked_ = true; }
 
-void ContinuationObject::mark() {
+void ContinuationObject::mark()
+{
     if (marked_)
         return;
     marked_ = true;
-    for (Value v: value_stack_) {
+    for (Value v : value_stack_) {
         if (v.isPointer())
             v.asPointer()->mark();
     }
-    for (Frame* f: frame_stack_) {
+    for (Frame* f : frame_stack_) {
         f->mark();
     }
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

@@ -7,11 +7,16 @@ namespace {
 using namespace nscheme;
 
 
-bool isSelfEvaluating(Value value) {
-    if (value.isInteger()) return true;
-    if (value.isCharacter()) return true;
-    if (value == Value::True) return true;
-    if (value == Value::False) return true;
+bool isSelfEvaluating(Value value)
+{
+    if (value.isInteger())
+        return true;
+    if (value.isCharacter())
+        return true;
+    if (value == Value::True)
+        return true;
+    if (value == Value::False)
+        return true;
     if (value.isPointer()) {
         auto p1 = dynamic_cast<StringObject*>(value.asPointer());
         if (p1 != nullptr)
@@ -23,39 +28,38 @@ bool isSelfEvaluating(Value value) {
     return false;
 }
 
-}   // namespace
+} // namespace
 
 
 namespace nscheme {
 
 
-void NamedVariableNode::codegen(Code& code) {
+void NamedVariableNode::codegen(Code& code)
+{
     code.main.push_back(new LoadNamedVariableInst(name_));
 }
 
 
-std::string NamedVariableNode::toString() const {
-    return name_.toString();
-}
+std::string NamedVariableNode::toString() const { return name_.toString(); }
 
 
-void IndexedVariableNode::codegen(Code& code) {
+void IndexedVariableNode::codegen(Code& code)
+{
     code.main.push_back(new LoadIndexedVariableInst(frame_index_, variable_index_));
 }
 
 
-std::string IndexedVariableNode::toString() const {
-    return "V[" + std::to_string(frame_index_) + ", " +
-           std::to_string(variable_index_) + "]";
+std::string IndexedVariableNode::toString() const
+{
+    return "V[" + std::to_string(frame_index_) + ", " + std::to_string(variable_index_) + "]";
 }
 
 
-void LiteralNode::codegen(Code& code) {
-    code.main.push_back(new LoadLiteralInst(value_));
-}
+void LiteralNode::codegen(Code& code) { code.main.push_back(new LoadLiteralInst(value_)); }
 
 
-std::string LiteralNode::toString() const {
+std::string LiteralNode::toString() const
+{
     if (isSelfEvaluating(value_))
         return value_.toString();
     else
@@ -63,18 +67,20 @@ std::string LiteralNode::toString() const {
 }
 
 
-void ProcedureCallNode::codegen(Code& code) {
-    for (auto& node: operand_)
+void ProcedureCallNode::codegen(Code& code)
+{
+    for (auto& node : operand_)
         node->codegen(code);
     callee_->codegen(code);
     code.main.push_back(new ApplyInst(operand_.size()));
 }
 
 
-std::string ProcedureCallNode::toString() const {
+std::string ProcedureCallNode::toString() const
+{
     std::string buffer("{");
     buffer += callee_->toString();
-    for (auto& p: operand_) {
+    for (auto& p : operand_) {
         buffer.push_back(' ');
         buffer += p->toString();
     }
@@ -83,13 +89,15 @@ std::string ProcedureCallNode::toString() const {
 }
 
 
-void DefineNode::codegen(Code& code) {
+void DefineNode::codegen(Code& code)
+{
     expr_->codegen(code);
     code.main.push_back(new IndexedAssignInst(0, index_));
 }
 
 
-std::string DefineNode::toString() const {
+std::string DefineNode::toString() const
+{
     std::string buffer("[define ");
     buffer += name_.toString();
     buffer.push_back(' ');
@@ -99,7 +107,8 @@ std::string DefineNode::toString() const {
 }
 
 
-void LambdaNode::codegen(Code& code) {
+void LambdaNode::codegen(Code& code)
+{
     Code subcode;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         nodes_[i]->codegen(subcode);
@@ -117,12 +126,14 @@ void LambdaNode::codegen(Code& code) {
 }
 
 
-std::string LambdaNode::toString() const {
+std::string LambdaNode::toString() const
+{
     std::string buffer("<lambda ");
     if (variable_args_) {
         if (arg_names_.size() == 1) {
             buffer += arg_names_[0].toString();
-        } else {
+        }
+        else {
             buffer.push_back('(');
             for (size_t i = 0; i < arg_names_.size(); ++i) {
                 buffer += arg_names_[i].toString();
@@ -133,7 +144,8 @@ std::string LambdaNode::toString() const {
             }
             buffer.push_back(')');
         }
-    } else {
+    }
+    else {
         buffer.push_back('(');
         for (size_t i = 0; i < arg_names_.size(); ++i) {
             if (i != 0)
@@ -152,7 +164,7 @@ std::string LambdaNode::toString() const {
         buffer.push_back(']');
     }
     */
-    for (auto& node: nodes_) {
+    for (auto& node : nodes_) {
         buffer.push_back(' ');
         buffer += node->toString();
     }
@@ -161,7 +173,8 @@ std::string LambdaNode::toString() const {
 }
 
 
-void IfNode::codegen(Code& code) {
+void IfNode::codegen(Code& code)
+{
     LabelInst* then_label = new LabelInst;
     LabelInst* end_label = new LabelInst;
 
@@ -178,7 +191,8 @@ void IfNode::codegen(Code& code) {
 }
 
 
-std::string IfNode::toString() const {
+std::string IfNode::toString() const
+{
     std::string buffer("<if ");
     buffer += cond_node_->toString();
     buffer.push_back(' ');
@@ -190,13 +204,15 @@ std::string IfNode::toString() const {
 }
 
 
-void NamedAssignmentNode::codegen(Code& code) {
+void NamedAssignmentNode::codegen(Code& code)
+{
     expr_->codegen(code);
     code.main.push_back(new NamedAssignInst(name_));
 }
 
 
-std::string NamedAssignmentNode::toString() const {
+std::string NamedAssignmentNode::toString() const
+{
     std::string buffer("<set! ");
     buffer += name_.toString();
     buffer.push_back(' ');
@@ -206,13 +222,15 @@ std::string NamedAssignmentNode::toString() const {
 }
 
 
-void IndexedAssignmentNode::codegen(Code& code) {
+void IndexedAssignmentNode::codegen(Code& code)
+{
     expr_->codegen(code);
     code.main.push_back(new IndexedAssignInst(frame_index_, variable_index_));
 }
 
 
-std::string IndexedAssignmentNode::toString() const {
+std::string IndexedAssignmentNode::toString() const
+{
     std::string buffer("<set! ");
     buffer += std::to_string(frame_index_);
     buffer.push_back(' ');
@@ -221,6 +239,4 @@ std::string IndexedAssignmentNode::toString() const {
     buffer.push_back('>');
     return buffer;
 }
-
-
 }

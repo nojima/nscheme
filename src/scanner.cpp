@@ -6,10 +6,23 @@
 namespace {
 
 
-inline bool isSpecialInitial(int ch) {
+inline bool isSpecialInitial(int ch)
+{
     switch (ch) {
-    case '!': case '$': case '%': case '&': case '*': case '/': case ':':
-    case '<': case '=': case '>': case '?': case '^': case '_': case '~':
+    case '!':
+    case '$':
+    case '%':
+    case '&':
+    case '*':
+    case '/':
+    case ':':
+    case '<':
+    case '=':
+    case '>':
+    case '?':
+    case '^':
+    case '_':
+    case '~':
         return true;
     default:
         return false;
@@ -17,14 +30,16 @@ inline bool isSpecialInitial(int ch) {
 }
 
 
-inline bool isInitial(int ch) {
-    return isalpha(ch) || isSpecialInitial(ch);
-}
+inline bool isInitial(int ch) { return isalpha(ch) || isSpecialInitial(ch); }
 
 
-inline bool isSpecialSubsequent(int ch) {
+inline bool isSpecialSubsequent(int ch)
+{
     switch (ch) {
-    case '+': case '-': case '.': case '@':
+    case '+':
+    case '-':
+    case '.':
+    case '@':
         return true;
     default:
         return false;
@@ -32,18 +47,17 @@ inline bool isSpecialSubsequent(int ch) {
 }
 
 
-inline bool isSubsequent(int ch) {
-    return isInitial(ch) || isdigit(ch) || isSpecialSubsequent(ch);
-}
+inline bool isSubsequent(int ch) { return isInitial(ch) || isdigit(ch) || isSpecialSubsequent(ch); }
 
 
-}   // namespace
+} // namespace
 
 
 namespace nscheme {
 
 
-Token Scanner::getToken() {
+Token Scanner::getToken()
+{
 retry:
 
     while (isspace(ch_)) {
@@ -90,7 +104,8 @@ retry:
         ch_ = stream_->getChar();
         if (isdigit(ch_) || ch_ == '.') {
             return tokenizeNumber(sign == '-');
-        } else {
+        }
+        else {
             Symbol symbol = symbol_table_->intern(std::string(1, sign));
             return Token::makeIdentifier(getPosition(), symbol);
         }
@@ -100,7 +115,8 @@ retry:
         ch_ = stream_->getChar();
         if (isdigit(ch_)) {
             return tokenizeNumber(false);
-        } else {
+        }
+        else {
             std::string buffer(".");
             while (isSubsequent(ch_)) {
                 buffer.push_back(ch_);
@@ -136,7 +152,8 @@ retry:
         if (ch_ == '@') {
             ch_ = stream_->getChar();
             return Token(TokenType::kCommaAt, getPosition());
-        } else {
+        }
+        else {
             return Token(TokenType::kComma, getPosition());
         }
     }
@@ -156,7 +173,8 @@ retry:
 }
 
 
-Token Scanner::tokenizeIdentifier() {
+Token Scanner::tokenizeIdentifier()
+{
     std::string buffer(1, ch_);
     ch_ = stream_->getChar();
     while (isSubsequent(ch_)) {
@@ -168,7 +186,8 @@ Token Scanner::tokenizeIdentifier() {
 }
 
 
-Token Scanner::tokenizeCharacter() {
+Token Scanner::tokenizeCharacter()
+{
     const int ch1 = stream_->getChar();
     const int ch2 = stream_->getChar();
     if (isalpha(ch1) && isalpha(ch2)) {
@@ -186,28 +205,37 @@ Token Scanner::tokenizeCharacter() {
         else
             throw ScanError(getPosition(), "unknown character name: " + buffer);
         return Token::makeCharacter(getPosition(), character);
-    } else {
+    }
+    else {
         ch_ = ch2;
         return Token::makeCharacter(getPosition(), ch1);
     }
 }
 
 
-Token Scanner::tokenizeString() {
+Token Scanner::tokenizeString()
+{
     ch_ = stream_->getChar();
     std::string buffer;
     while (ch_ != EOF && ch_ != '"') {
         if (ch_ == '\\') {
             ch_ = stream_->getChar();
             switch (ch_) {
-            case '"': buffer.push_back('"');
-            case '\\': buffer.push_back('\\');
-            case 'n': buffer.push_back('\n');
-            case 'r': buffer.push_back('\r');
-            case 't': buffer.push_back('\t');
-            default: throw ScanError(getPosition(), "unknown escape: \\" + std::string(1, ch_));
+            case '"':
+                buffer.push_back('"');
+            case '\\':
+                buffer.push_back('\\');
+            case 'n':
+                buffer.push_back('\n');
+            case 'r':
+                buffer.push_back('\r');
+            case 't':
+                buffer.push_back('\t');
+            default:
+                throw ScanError(getPosition(), "unknown escape: \\" + std::string(1, ch_));
             }
-        } else {
+        }
+        else {
             buffer.push_back(ch_);
         }
         ch_ = stream_->getChar();
@@ -219,7 +247,8 @@ Token Scanner::tokenizeString() {
 }
 
 
-Token Scanner::tokenizeNumber(bool negative) {
+Token Scanner::tokenizeNumber(bool negative)
+{
     std::string buffer;
     size_t n_period = 0;
     while (isdigit(ch_) || ch_ == '.') {
@@ -238,4 +267,4 @@ Token Scanner::tokenizeNumber(bool negative) {
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

@@ -20,19 +20,13 @@ public:
 };
 
 
-class LabelInst: public Inst {
+class LabelInst : public Inst {
 public:
-    Inst** getLocation() const noexcept {
-        return location_;
-    }
+    Inst** getLocation() const noexcept { return location_; }
 
-    void setLocation(Inst** location) {
-        location_ = location;
-    }
+    void setLocation(Inst** location) { location_ = location; }
 
-    std::string toString() const override {
-        return "[" + std::to_string((uintptr_t)this) + "]";
-    }
+    std::string toString() const override { return "[" + std::to_string((uintptr_t) this) + "]"; }
 
     void exec(Context*) override;
 
@@ -41,13 +35,14 @@ private:
 };
 
 
-class LoadNamedVariableInst: public Inst {
+class LoadNamedVariableInst : public Inst {
 public:
-    LoadNamedVariableInst(Symbol name): name_(name) {}
-
-    std::string toString() const override {
-        return "  load_variable " + name_.toString();
+    LoadNamedVariableInst(Symbol name)
+        : name_(name)
+    {
     }
+
+    std::string toString() const override { return "  load_variable " + name_.toString(); }
 
     void exec(Context* context) override;
 
@@ -56,14 +51,18 @@ private:
 };
 
 
-class LoadIndexedVariableInst: public Inst {
+class LoadIndexedVariableInst : public Inst {
 public:
     LoadIndexedVariableInst(size_t frame_index, size_t variable_index)
-        : frame_index_(frame_index), variable_index_(variable_index) {}
+        : frame_index_(frame_index)
+        , variable_index_(variable_index)
+    {
+    }
 
-    std::string toString() const override {
-        return "  load_indexed_variable " + std::to_string(frame_index_) + " " +
-               std::to_string(variable_index_);
+    std::string toString() const override
+    {
+        return "  load_indexed_variable " + std::to_string(frame_index_) + " "
+               + std::to_string(variable_index_);
     }
 
     void exec(Context* context) override;
@@ -74,17 +73,16 @@ private:
 };
 
 
-class LoadLiteralInst: public Inst {
+class LoadLiteralInst : public Inst {
 public:
-    LoadLiteralInst(Value value): value_(value) {}
-
-    std::string toString() const override {
-        return "  load_literal " + value_.toString();
+    LoadLiteralInst(Value value)
+        : value_(value)
+    {
     }
 
-    Value getValue() const {
-        return value_;
-    }
+    std::string toString() const override { return "  load_literal " + value_.toString(); }
+
+    Value getValue() const { return value_; }
 
     void exec(Context* context) override;
 
@@ -93,12 +91,17 @@ private:
 };
 
 
-class LoadClosureInst: public Inst {
+class LoadClosureInst : public Inst {
 public:
     LoadClosureInst(LabelInst* label, size_t arg_size, size_t frame_size)
-        : label_(label), arg_size_(arg_size), frame_size_(frame_size) {}
+        : label_(label)
+        , arg_size_(arg_size)
+        , frame_size_(frame_size)
+    {
+    }
 
-    std::string toString() const override {
+    std::string toString() const override
+    {
         std::string ret = "  load_closure " + label_->toString();
         ret += std::to_string(arg_size_);
         ret += " ";
@@ -115,20 +118,22 @@ private:
 };
 
 
-class ApplyInst: public Inst {
+class ApplyInst : public Inst {
 public:
-    ApplyInst(size_t n_args): n_args_(n_args) {}
+    ApplyInst(size_t n_args)
+        : n_args_(n_args)
+    {
+    }
 
-    std::string toString() const override {
+    std::string toString() const override
+    {
         if (tail_)
             return "  tail_apply " + std::to_string(n_args_);
         else
             return "  apply " + std::to_string(n_args_);
     }
 
-    void setTail(bool tail) {
-        tail_ = tail;
-    }
+    void setTail(bool tail) { tail_ = tail; }
 
     void exec(Context* context) override;
 
@@ -138,13 +143,14 @@ private:
 };
 
 
-class NamedAssignInst: public Inst {
+class NamedAssignInst : public Inst {
 public:
-    NamedAssignInst(Symbol name): name_(name) {}
-
-    std::string toString() const override {
-        return "  named_assign " + name_.toString();
+    NamedAssignInst(Symbol name)
+        : name_(name)
+    {
     }
+
+    std::string toString() const override { return "  named_assign " + name_.toString(); }
 
     void exec(Context* context) override;
 
@@ -153,15 +159,18 @@ private:
 };
 
 
-
-class IndexedAssignInst: public Inst {
+class IndexedAssignInst : public Inst {
 public:
     IndexedAssignInst(size_t frame_index, size_t variable_index)
-        : frame_index_(frame_index), variable_index_(variable_index) {}
+        : frame_index_(frame_index)
+        , variable_index_(variable_index)
+    {
+    }
 
-    std::string toString() const override {
-        return "  indexed_assign " + std::to_string(frame_index_) + " " +
-               std::to_string(variable_index_);
+    std::string toString() const override
+    {
+        return "  indexed_assign " + std::to_string(frame_index_) + " "
+               + std::to_string(variable_index_);
     }
 
     void exec(Context* context) override;
@@ -172,41 +181,34 @@ private:
 };
 
 
-class ReturnInst: public Inst {
+class ReturnInst : public Inst {
 public:
-    std::string toString() const override {
-        return "  return";
-    }
+    std::string toString() const override { return "  return"; }
 
     void exec(Context* context) override;
 };
 
 
-class DiscardInst: public Inst {
+class DiscardInst : public Inst {
 public:
-    std::string toString() const override {
-        return "  discard";
-    }
+    std::string toString() const override { return "  discard"; }
 
     void exec(Context* context) override;
 };
 
 
-class JumpInst: public Inst {
+class JumpInst : public Inst {
 public:
-    JumpInst(LabelInst* label): label_(label) {}
-
-    LabelInst* getLabel() noexcept {
-        return label_;
+    JumpInst(LabelInst* label)
+        : label_(label)
+    {
     }
 
-    const LabelInst* getLabel() const noexcept {
-        return label_;
-    }
+    LabelInst* getLabel() noexcept { return label_; }
 
-    std::string toString() const override {
-        return "  jump " + label_->toString();
-    }
+    const LabelInst* getLabel() const noexcept { return label_; }
+
+    std::string toString() const override { return "  jump " + label_->toString(); }
 
     void exec(Context* context) override;
 
@@ -215,21 +217,18 @@ private:
 };
 
 
-class JumpIfInst: public Inst {
+class JumpIfInst : public Inst {
 public:
-    JumpIfInst(LabelInst* label): label_(label) {}
-
-    LabelInst* getLabel() noexcept {
-        return label_;
+    JumpIfInst(LabelInst* label)
+        : label_(label)
+    {
     }
 
-    const LabelInst* getLabel() const noexcept {
-        return label_;
-    }
+    LabelInst* getLabel() noexcept { return label_; }
 
-    std::string toString() const override {
-        return "  jump_if " + label_->toString();
-    }
+    const LabelInst* getLabel() const noexcept { return label_; }
+
+    std::string toString() const override { return "  jump_if " + label_->toString(); }
 
     void exec(Context* context) override;
 
@@ -238,27 +237,32 @@ private:
 };
 
 
-class QuitInst: public Inst {
+class QuitInst : public Inst {
 public:
-    std::string toString() const override {
-        return "  quit";
-    }
+    std::string toString() const override { return "  quit"; }
 
     void exec(Context* context) override;
 };
 
 
-struct NameError: public std::runtime_error {
-    NameError(const std::string& message): std::runtime_error(message) {}
+struct NameError : public std::runtime_error {
+    NameError(const std::string& message)
+        : std::runtime_error(message)
+    {
+    }
 };
 
 
-struct TypeError: public std::runtime_error {
-    TypeError(const std::string& message): std::runtime_error(message) {}
+struct TypeError : public std::runtime_error {
+    TypeError(const std::string& message)
+        : std::runtime_error(message)
+    {
+    }
 };
 
 
-struct Quit {};
+struct Quit {
+};
 
 
-}   // namespace nscheme
+} // namespace nscheme

@@ -16,7 +16,8 @@
 using namespace nscheme;
 
 
-std::vector<Inst*> codegen(Node* node) {
+std::vector<Inst*> codegen(Node* node)
+{
     Code code;
     node->codegen(code);
     code.main.push_back(new QuitInst());
@@ -26,7 +27,8 @@ std::vector<Inst*> codegen(Node* node) {
 }
 
 
-void resolveLabels(std::vector<Inst*>& code) {
+void resolveLabels(std::vector<Inst*>& code)
+{
     for (size_t i = 0; i < code.size(); ++i) {
         if (auto label = dynamic_cast<LabelInst*>(code[i])) {
             label->setLocation(&code[i]);
@@ -35,7 +37,8 @@ void resolveLabels(std::vector<Inst*>& code) {
 }
 
 
-bool optimizeOnePass(std::vector<Inst*>& code) {
+bool optimizeOnePass(std::vector<Inst*>& code)
+{
     bool changed = false;
     Inst** last = &code[0] + code.size();
 
@@ -50,9 +53,10 @@ bool optimizeOnePass(std::vector<Inst*>& code) {
                 if (dynamic_cast<LabelInst*>(code[j]) == nullptr)
                     break;
             }
-        } else if (auto jump = dynamic_cast<JumpInst*>(code[i])) {
+        }
+        else if (auto jump = dynamic_cast<JumpInst*>(code[i])) {
             Inst** ip = jump->getLabel()->getLocation();
-            for ( ; ip != last; ip++) {
+            for (; ip != last; ip++) {
                 if (dynamic_cast<ReturnInst*>(*ip)) {
                     delete code[i];
                     code[i] = new ReturnInst;
@@ -75,7 +79,8 @@ bool optimizeOnePass(std::vector<Inst*>& code) {
 }
 
 
-void optimize(std::vector<Inst*>& code) {
+void optimize(std::vector<Inst*>& code)
+{
     const int maxPass = 7;
 
     for (int i = 0; i < maxPass; ++i) {
@@ -85,13 +90,15 @@ void optimize(std::vector<Inst*>& code) {
 }
 
 
-void printInst(Context& ctx) {
+void printInst(Context& ctx)
+{
     std::puts("====================================================");
     std::printf("Inst: %s\n", (*ctx.ip)->toString().c_str());
 }
 
 
-void printState(Context& ctx) {
+void printState(Context& ctx)
+{
     std::printf("ValueStack:");
     for (auto it = ctx.value_stack.begin(); it != ctx.value_stack.end(); ++it)
         std::printf(" %s", it->toString().c_str());
@@ -101,7 +108,8 @@ void printState(Context& ctx) {
     for (auto f = ctx.frame_stack.back(); f != nullptr; f = f->getParent()) {
         if (f->getParent() == nullptr) {
             std::printf("{global}");
-        } else {
+        }
+        else {
             std::printf("{");
             auto& variables = f->getVariables();
             for (size_t i = 0; i < variables.size(); ++i) {
@@ -117,12 +125,13 @@ void printState(Context& ctx) {
 
 
 Context createContext(std::vector<Inst*>& code, Allocator* allocator,
-                      std::unordered_map<Symbol, Value>& global_variables) {
+                      std::unordered_map<Symbol, Value>& global_variables)
+{
     Context ctx;
 
     ctx.ip = &code[0];
     ctx.allocator = allocator;
-    for (Inst* inst: code) {
+    for (Inst* inst : code) {
         if (auto literal = dynamic_cast<LoadLiteralInst*>(inst))
             ctx.literals.push_back(literal->getValue());
     }
@@ -130,15 +139,15 @@ Context createContext(std::vector<Inst*>& code, Allocator* allocator,
 
     std::vector<std::pair<Symbol, Value>> tmp;
     tmp.reserve(global_variables.size());
-    for (auto it: global_variables)
+    for (auto it : global_variables)
         tmp.push_back(it);
     std::sort(tmp.begin(), tmp.end(),
-        [](const std::pair<Symbol, Value>& a, const std::pair<Symbol, Value>& b) {
-            return a.first.toString() < b.first.toString();
-        });
+              [](const std::pair<Symbol, Value>& a, const std::pair<Symbol, Value>& b) {
+        return a.first.toString() < b.first.toString();
+    });
     std::vector<Value> variables;
     variables.reserve(tmp.size());
-    for (auto it: tmp)
+    for (auto it : tmp)
         variables.push_back(it.second);
     Frame* frame = allocator->make<Frame>(nullptr, variables);
     ctx.frame_stack.push_back(frame);
@@ -148,20 +157,25 @@ Context createContext(std::vector<Inst*>& code, Allocator* allocator,
 
 
 int run(std::vector<Inst*>& code, Allocator* allocator,
-        std::unordered_map<Symbol, Value>& global_variables, bool trace) {
+        std::unordered_map<Symbol, Value>& global_variables, bool trace)
+{
 
     Context ctx = createContext(code, allocator, global_variables);
 
     try {
         for (;;) {
-            if (trace) printInst(ctx);
+            if (trace)
+                printInst(ctx);
 
             (*ctx.ip)->exec(&ctx);
 
-            if (trace) printState(ctx);
+            if (trace)
+                printState(ctx);
         }
-    } catch (Quit&) {
-    } catch (std::runtime_error& e) {
+    }
+    catch (Quit&) {
+    }
+    catch (std::runtime_error& e) {
         std::printf("[ERROR] %s\n", e.what());
         return 1;
     }
@@ -170,7 +184,8 @@ int run(std::vector<Inst*>& code, Allocator* allocator,
 }
 
 
-void usage() {
+void usage()
+{
     puts("Usage: nscheme [--help] [--trace] [FILE]");
     puts("Options:");
     puts("  --help   show this message and exit");
@@ -178,7 +193,8 @@ void usage() {
 }
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     bool trace = false;
     std::string filename = "-";
 
@@ -199,7 +215,8 @@ int main(int argc, char** argv) {
         if (args.count("filename")) {
             filename = args["filename"];
         }
-    } catch (ArgumentParseError& e) {
+    }
+    catch (ArgumentParseError& e) {
         std::fprintf(stderr, "%s\n", e.what());
         usage();
         return 1;
@@ -240,17 +257,18 @@ int main(int argc, char** argv) {
 
         if (trace) {
             std::puts("==== Inst ====");
-            for (Inst* inst: code)
+            for (Inst* inst : code)
                 std::printf("%s\n", inst->toString().c_str());
         }
 
         int rc = run(code, &allocator, global_variables, trace);
 
-        for (Inst* inst: code)
+        for (Inst* inst : code)
             delete inst;
 
         return rc;
-    } catch (const std::runtime_error& e) {
+    }
+    catch (const std::runtime_error& e) {
         std::fprintf(stderr, "%s\n", e.what());
         return 1;
     }

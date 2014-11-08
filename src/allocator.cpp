@@ -5,20 +5,21 @@
 namespace nscheme {
 
 
-void Allocator::gc(Context* ctx) {
+void Allocator::gc(Context* ctx)
+{
     // std::printf("GC started: size=%zd, limit=%zd\n", size_, limit_);
 
-    for (Object* obj: objects_)
+    for (Object* obj : objects_)
         obj->resetMark();
 
-    for (Value v: ctx->value_stack) {
+    for (Value v : ctx->value_stack) {
         if (v.isPointer())
             v.asPointer()->mark();
     }
-    for (Frame* f: ctx->frame_stack) {
+    for (Frame* f : ctx->frame_stack) {
         f->mark();
     }
-    for (Value v: ctx->literals) {
+    for (Value v : ctx->literals) {
         if (v.isPointer())
             v.asPointer()->mark();
     }
@@ -41,4 +42,4 @@ void Allocator::gc(Context* ctx) {
 }
 
 
-}   // namespace nscheme
+} // namespace nscheme

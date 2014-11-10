@@ -16,7 +16,7 @@ public:
     static const Value True;
     static const Value Undefined;
 
-    static Value fromPointer(Object* obj) { return Value(reinterpret_cast<uint64_t>(obj)); }
+    static Value fromPointer(Object* obj) { return Value(obj); }
 
     static Value fromInteger(int64_t n)
     {
@@ -40,9 +40,9 @@ public:
 
     bool isCharacter() const { return (value_ & kMask) == kFlagCharacter; }
 
-    Object* asPointer() { return reinterpret_cast<Object*>(value_); }
+    Object* asPointer() { return ptr_; }
 
-    const Object* asPointer() const { return reinterpret_cast<const Object*>(value_); }
+    const Object* asPointer() const { return ptr_; }
 
     int64_t asInteger() const { return static_cast<int64_t>(value_) >> kShift; }
 
@@ -67,6 +67,11 @@ private:
     {
     }
 
+    explicit Value(Object* obj)
+        : ptr_(obj)
+    {
+    }
+
     static constexpr uint64_t kNil = 0;
     static constexpr uint64_t kFalse = 4;
     static constexpr uint64_t kTrue = 8;
@@ -77,7 +82,10 @@ private:
     static constexpr uint64_t kShift = 2;
     static constexpr uint64_t kMask = (1 << kShift) - 1;
 
-    uint64_t value_;
+    union {
+        uint64_t value_;
+        Object *ptr_;
+    };
 };
 
 

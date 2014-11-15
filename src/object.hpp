@@ -247,4 +247,8 @@ private:
 };
 
 
+// utility functions
+bool isPair(Value v);
+
+
 } // namespace nscheme

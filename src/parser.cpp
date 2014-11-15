@@ -32,14 +32,6 @@ bool isSelfEvaluating(Value value)
 }
 
 
-inline bool isPair(Value value)
-{
-    if (!value.isPointer())
-        return false;
-    return dynamic_cast<PairObject*>(value.asPointer());
-}
-
-
 template <typename T, typename... Args> std::unique_ptr<T> make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
@@ -50,6 +42,22 @@ template <typename T, typename... Args> std::unique_ptr<T> make_unique(Args&&...
 
 
 namespace nscheme {
+
+
+bool LocalNames::lookupSymbol(Symbol symbol, std::pair<size_t, size_t>* out) const
+{
+    size_t frame_index = 0;
+    for (const LocalNames* p = this; p != nullptr; p = p->parent) {
+        auto it = p->name2index.find(symbol);
+        if (it != p->name2index.end()) {
+            out->first = frame_index;
+            out->second = it->second;
+            return true;
+        }
+        ++frame_index;
+    }
+    return false;
+}
 
 
 std::unique_ptr<Node> Parser::parse(Value datum)
@@ -76,23 +84,6 @@ std::unique_ptr<Node> Parser::parse(Value datum)
     }
 
     return std::move(node);
-}
-
-
-bool Parser::lookupSymbol(Symbol symbol, const LocalNames& names,
-                          std::pair<size_t, size_t>* out) const
-{
-    size_t frame_index = 0;
-    for (const LocalNames* p = &names; p != nullptr; p = p->parent) {
-        auto it = p->name2index.find(symbol);
-        if (it != p->name2index.end()) {
-            out->first = frame_index;
-            out->second = it->second;
-            return true;
-        }
-        ++frame_index;
-    }
-    return false;
 }
 
 
@@ -146,7 +137,7 @@ std::unique_ptr<ExprNode> Parser::parseVariable(Symbol symbol, const Position& p
                                                 LocalNames& names)
 {
     std::pair<size_t, size_t> index;
-    if (lookupSymbol(symbol, names, &index))
+    if (names.lookupSymbol(symbol, &index))
         return make_unique<IndexedVariableNode>(position, index.first, index.second);
     else
         return make_unique<NamedVariableNode>(position, symbol);
@@ -281,7 +272,7 @@ std::unique_ptr<ExprNode> Parser::parseAssignment(Value value, const Position& p
     Symbol symbol = p1->getCar().asSymbol();
     auto expr = parseExpr(p2->getCar(), source_map_->at(p2), names);
     std::pair<size_t, size_t> index;
-    if (lookupSymbol(symbol, names, &index))
+    if (names.lookupSymbol(symbol, &index))
         return make_unique<IndexedAssignmentNode>(position, index.first, index.second,
                                                   std::move(expr));
     else

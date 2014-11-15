@@ -65,6 +65,7 @@ public:
     int getChar() override
     {
         int ch = (index_ < str_.size()) ? str_[index_] : EOF;
+        ++index_;
         if (ch == '\n') {
             ++line_;
             column_ = 1;
@@ -74,6 +75,8 @@ public:
         }
         return ch;
     }
+
+    Position getPosition() const override { return Position(filename_, line_, column_); }
 
 private:
     std::string str_;

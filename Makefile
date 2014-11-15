@@ -56,7 +56,7 @@ obj/test/%.exe: obj/test/%.o $(filter-out obj/main/main.o, $(OBJECTS)) $(GTEST_O
 
 obj/test/%.o: test/%.cpp
 	@mkdir -p obj/test
-	$(CXX) -Isrc -I$(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $<
+	$(CXX) -Isrc -I$(GTEST_DIR)/include $(CXXFLAGS) -w -o $@ -c $<
 
 -include $(TEST_DEPENDS)
 

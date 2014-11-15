@@ -75,3 +75,38 @@ TEST_F(SyntaxRuleTest, SimpleLiteral)
     EXPECT_EQ(0, mapping.count(symbol_table_.intern("to")));
     EXPECT_EQ(1, mapping.count(symbol_table_.intern("bar")));
 }
+
+
+TEST_F(SyntaxRuleTest, ComplexList1)
+{
+    Value pattern = read("(_ foo bar ... baz)");
+    Value tmpl = read("(set! foo bar)");
+    std::vector<Symbol> literal;
+    LocalNames names(nullptr);
+    SyntaxRule rule(pattern, tmpl, literal, names, &allocator_, &symbol_table_);
+
+    Value expr = read("(simple-macro s1 s2 s3 s4 s5 s6)");
+    std::unordered_map<Symbol, Value> mapping;
+    bool r = rule.match(pattern, expr, mapping);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(1, mapping.count(symbol_table_.intern("foo")));
+    EXPECT_EQ(1, mapping.count(symbol_table_.intern("bar")));
+    EXPECT_EQ(1, mapping.count(symbol_table_.intern("baz")));
+}
+
+
+TEST_F(SyntaxRuleTest, ComplexList2)
+{
+    Value pattern = read("(_ foo bar ...)");
+    Value tmpl = read("(set! foo bar)");
+    std::vector<Symbol> literal;
+    LocalNames names(nullptr);
+    SyntaxRule rule(pattern, tmpl, literal, names, &allocator_, &symbol_table_);
+
+    Value expr = read("(simple-macro s1 s2 s3 s4 s5 s6)");
+    std::unordered_map<Symbol, Value> mapping;
+    bool r = rule.match(pattern, expr, mapping);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(1, mapping.count(symbol_table_.intern("foo")));
+    EXPECT_EQ(1, mapping.count(symbol_table_.intern("bar")));
+}

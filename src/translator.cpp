@@ -30,7 +30,7 @@ bool SyntaxRule::match(Value pattern, Value expr, std::unordered_map<Symbol, Val
         bool is_proper = false;
 
         auto p = static_cast<PairObject*>(pattern.asPointer());
-        for (size_t i = 0; ; ++i) {
+        for (size_t i = 0;; ++i) {
             Value car = p->getCar();
             if (car.isSymbol() && car.asSymbol() == kwd_ellipsis_) {
                 if (ellipsis_index != -1)
@@ -50,7 +50,7 @@ bool SyntaxRule::match(Value pattern, Value expr, std::unordered_map<Symbol, Val
 
         ssize_t expr_len = -1;
         auto q = static_cast<PairObject*>(expr.asPointer());
-        for (size_t i = 0; ; ++i) {
+        for (size_t i = 0;; ++i) {
             Value cdr = q->getCdr();
             if (!isPair(cdr)) {
                 expr_len = i + 1;
@@ -69,15 +69,17 @@ bool SyntaxRule::match(Value pattern, Value expr, std::unordered_map<Symbol, Val
 
         p = static_cast<PairObject*>(pattern.asPointer());
         q = static_cast<PairObject*>(expr.asPointer());
-        for (ssize_t i = 0; ; ++i) {
+        for (ssize_t i = 0;; ++i) {
             if (!match(p->getCar(), q->getCar(), mapping))
                 return false;
 
             if (e <= i && i < m) {
                 Value q_cdr = q->getCdr();
                 q = static_cast<PairObject*>(q_cdr.asPointer());
-            } else {
-                Value p_cdr = (i == m) ? static_cast<PairObject*>(p->getCdr().asPointer())->getCdr() : p->getCdr();
+            }
+            else {
+                Value p_cdr = (i == m) ? static_cast<PairObject*>(p->getCdr().asPointer())->getCdr()
+                                       : p->getCdr();
                 Value q_cdr = q->getCdr();
                 if (!isPair(p_cdr) && !isPair(q_cdr)) {
                     if (is_proper)

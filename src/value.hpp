@@ -84,7 +84,7 @@ private:
 
     union {
         uint64_t value_;
-        Object *ptr_;
+        Object* ptr_;
     };
 };
 

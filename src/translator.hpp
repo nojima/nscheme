@@ -13,7 +13,8 @@ class SymbolTable;
 
 class SyntaxRule {
 public:
-    SyntaxRule(Value pattern, Value tmpl, std::vector<Symbol>& literals, LocalNames& names, Allocator* allocator, SymbolTable* symbol_table)
+    SyntaxRule(Value pattern, Value tmpl, std::vector<Symbol>& literals, LocalNames& names,
+               Allocator* allocator, SymbolTable* symbol_table)
         : pattern_(pattern)
         , template_(tmpl)
         , literals_(literals)

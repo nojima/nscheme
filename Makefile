@@ -48,7 +48,7 @@ obj/main/%.o: src/%.cpp
 # Build rules for TESTS
 #==============================================================================
 
-test: $(TESTS)
+check: $(TESTS)
 
 obj/test/%.exe: obj/test/%.o $(filter-out obj/main/main.o, $(OBJECTS)) $(GTEST_OBJ_DIR)/gtest_main.a
 	$(CXX) $(LDFLAGS) -lpthread $^ -o $@ $(LIBS)

@@ -56,7 +56,7 @@ obj/test/%.exe: obj/test/%.o $(filter-out obj/main/main.o, $(OBJECTS)) $(GTEST_O
 
 obj/test/%.o: test/%.cpp
 	@mkdir -p obj/test
-	$(CXX) -Isrc -I$(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $<
+	$(CXX) -isystem $(GTEST_DIR)/include -Isrc $(CXXFLAGS) -o $@ -c $<
 
 -include $(TEST_DEPENDS)
 
@@ -67,11 +67,11 @@ obj/test/%.o: test/%.cpp
 
 $(GTEST_OBJ_DIR)/gtest-all.o: $(GTEST_SOURCES)
 	@mkdir -p $(GTEST_OBJ_DIR)
-	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -w -o $@ -c $(GTEST_DIR)/src/gtest-all.cc
+	$(CXX) -isystem $(GTEST_DIR) -isystem $(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $(GTEST_DIR)/src/gtest-all.cc
 
 $(GTEST_OBJ_DIR)/gtest_main.o: $(GTEST_SOURCES)
 	@mkdir -p $(GTEST_OBJ_DIR)
-	$(CXX) -I$(GTEST_DIR) -I$(GTEST_DIR)/include $(CXXFLAGS) -w -o $@ -c $(GTEST_DIR)/src/gtest_main.cc
+	$(CXX) -isystem $(GTEST_DIR) -isystem $(GTEST_DIR)/include $(CXXFLAGS) -o $@ -c $(GTEST_DIR)/src/gtest_main.cc
 
 $(GTEST_OBJ_DIR)/gtest.a: $(GTEST_OBJ_DIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^

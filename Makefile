@@ -87,7 +87,7 @@ $(GTEST_OBJ_DIR)/gtest_main.a: $(GTEST_OBJ_DIR)/gtest-all.o $(GTEST_OBJ_DIR)/gte
 clean:
 	rm -rf obj/ $(TARGET)
 
-.PHONY: clean test
+.PHONY: clean check
 
 # do not delete intermediate files
 .SECONDARY:

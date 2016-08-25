@@ -144,7 +144,7 @@ public:
 
     std::vector<Value>& getVariables() { return variables_; }
 
-    std::string toString() const { return "<frame>"; }
+    std::string toString() const override { return "<frame>"; }
 
     void mark() override;
 

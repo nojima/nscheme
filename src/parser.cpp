@@ -75,7 +75,7 @@ std::unique_ptr<Node> Parser::parse(Value datum)
         def->setExpr(std::move(expr));
     }
 
-    return std::move(node);
+    return node;
 }
 
 

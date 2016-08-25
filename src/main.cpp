@@ -152,7 +152,7 @@ Context createContext(std::vector<Inst*>& code, Allocator* allocator,
     Frame* frame = allocator->make<Frame>(nullptr, variables);
     ctx.frame_stack.push_back(frame);
 
-    return std::move(ctx);
+    return ctx;
 }
 
 

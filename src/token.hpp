@@ -40,35 +40,35 @@ public:
     {
         Token t(TokenType::kIdentifier, position);
         t.symbol_ = symbol;
-        return std::move(t);
+        return t;
     }
 
     static Token makeInteger(const Position& position, int64_t integer)
     {
         Token t(TokenType::kInteger, position);
         t.integer_ = integer;
-        return std::move(t);
+        return t;
     }
 
     static Token makeReal(const Position& position, double real)
     {
         Token t(TokenType::kReal, position);
         t.real_ = real;
-        return std::move(t);
+        return t;
     }
 
     static Token makeCharacter(const Position& position, uint32_t character)
     {
         Token t(TokenType::kCharacter, position);
         t.character_ = character;
-        return std::move(t);
+        return t;
     }
 
     static Token makeString(const Position& position, const std::string& string)
     {
         Token t(TokenType::kString, position);
         t.string_ = string;
-        return std::move(t);
+        return t;
     }
 
     TokenType getType() const noexcept { return type_; }

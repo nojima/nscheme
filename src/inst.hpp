@@ -106,7 +106,7 @@ public:
         ret += std::to_string(arg_size_);
         ret += " ";
         ret += std::to_string(frame_size_);
-        return std::move(ret);
+        return ret;
     }
 
     void exec(Context* context) override;

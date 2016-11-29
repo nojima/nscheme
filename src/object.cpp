@@ -143,4 +143,12 @@ void ContinuationObject::mark()
 }
 
 
+bool isPair(Value value)
+{
+    if (!value.isPointer())
+        return false;
+    return dynamic_cast<PairObject*>(value.asPointer());
+}
+
+
 } // namespace nscheme

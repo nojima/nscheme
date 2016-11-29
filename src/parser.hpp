@@ -11,6 +11,19 @@
 namespace nscheme {
 
 
+struct LocalNames {
+    explicit LocalNames(LocalNames* parent)
+        : parent(parent)
+    {
+    }
+
+    bool lookupSymbol(Symbol symbol, std::pair<size_t, size_t>* out) const;
+
+    LocalNames* parent;
+    std::unordered_map<Symbol, size_t> name2index;
+};
+
+
 class Parser {
 public:
     Parser(SymbolTable* symbol_table, SourceMap* source_map,
@@ -29,16 +42,6 @@ public:
     std::unique_ptr<Node> parse(Value datum);
 
 private:
-    struct LocalNames {
-        explicit LocalNames(LocalNames* parent)
-            : parent(parent)
-        {
-        }
-        LocalNames* parent;
-        std::unordered_map<Symbol, size_t> name2index;
-    };
-
-    bool lookupSymbol(Symbol symbol, const LocalNames& names, std::pair<size_t, size_t>* out) const;
     std::unique_ptr<Node> parseExprOrDefine(Value value, const Position& position,
                                             LocalNames& names);
     std::unique_ptr<ExprNode> parseExpr(Value value, const Position& position, LocalNames& names);

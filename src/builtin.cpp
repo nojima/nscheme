@@ -90,14 +90,6 @@ void registerFunction2(std::unordered_map<Symbol, Value>* variables, Allocator* 
 }
 
 
-bool isPair(Value obj)
-{
-    if (!obj.isPointer())
-        return false;
-    return dynamic_cast<PairObject*>(obj.asPointer()) != nullptr;
-}
-
-
 } // namespace
 
 
